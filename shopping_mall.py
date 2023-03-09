@@ -20,7 +20,7 @@ class ShoppingMall:
         # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
         # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
         # TODO: change to 10*60
-        last_arrival = 10
+        last_arrival = 10*60
 
         # Arrival lambda is assumed from shopping mall data analysis papers
         # for now it is set to 2 (meaning 2 users arrive per minute)
@@ -75,7 +75,7 @@ class ShoppingMall:
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time
-            user.updateArrivalTime(arrival_time)
+            user.update_arrival_time(arrival_time)
 
             # Calculate distance between user arrival and departure points
             distance = np.sqrt(
@@ -88,7 +88,7 @@ class ShoppingMall:
             departure_time = (
                     arrival_time + (distance / user.speed)
             )
-            user.updateDepartureTime(departure_time)
+            user.update_departure_time(departure_time)
 
     def plot_scenario(self):
         fig, ax = plt.subplots()

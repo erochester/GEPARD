@@ -1,4 +1,5 @@
 from ble import BLE
+from lora import Lora
 
 
 class Network:
@@ -7,6 +8,8 @@ class Network:
         self.tech = tech
         if tech == "ble":
             self.technology = BLE()
+        elif tech == "lora":
+            self.technology = Lora()
 
     def send(self, payload):
         return self.technology.send(payload)

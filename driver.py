@@ -46,7 +46,7 @@ class Driver:
                     + (u.arr_loc[1] - u.dep_loc[1]) ** 2
                 )
                 d_coeff = ((curr_t - u.arr_time) * u.speed) / distance
-                u.updateLocation(
+                u.update_location(
                     (
                         ((1 - d_coeff) * u.arr_loc[0] + (d_coeff * u.dep_loc[0])),
                         ((1 - d_coeff) * u.arr_loc[1] + (d_coeff * u.dep_loc[1])),

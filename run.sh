@@ -1,4 +1,10 @@
 #!/bin/bash
 rm debug.log
-# user_num, lmbd, radius, algo (1 is alanezi, else cunche)
-python3 main.py 100 0.01 40 0
+
+for algo in "alanezi" "cunche"
+do
+    for network in "ble" "lora"
+    do
+          python3 main.py -a ${algo} --n ${network}
+    done
+done
