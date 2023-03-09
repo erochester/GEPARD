@@ -1,0 +1,241 @@
+2023-03-08 17:51:16,091 Total Number of Users: 19
+2023-03-08 17:51:16,091 #################################################################
+2023-03-08 17:51:16,091 Current time: 0.7325743961421611
+2023-03-08 17:51:16,091 Current before removal users: 1
+2023-03-08 17:51:16,091 Current after removal users: 1
+2023-03-08 17:51:16,091 [Alanezi] Number of users in range: 0
+2023-03-08 17:51:16,091 Users in range: []
+2023-03-08 17:51:16,091 List of consented: []
+2023-03-08 17:51:16,091 Consented: 0
+2023-03-08 17:51:16,091 User power consumption: 0
+2023-03-08 17:51:16,091 Owner power consumption: 0
+2023-03-08 17:51:16,091 Users left: 1
+2023-03-08 17:51:16,091 No more arrivals left?: False
+2023-03-08 17:51:16,091 #################################################################
+2023-03-08 17:51:16,091 Current time: 1.88989755490645
+2023-03-08 17:51:16,091 Current before removal users: 2
+2023-03-08 17:51:16,091 Current after removal users: 2
+2023-03-08 17:51:16,092 [Alanezi] Number of users in range: 1
+2023-03-08 17:51:16,092 Users in range: [<user.User object at 0x10e89f730>]
+2023-03-08 17:51:16,092 List of consented: [1]
+2023-03-08 17:51:16,092 Consented: 1
+2023-03-08 17:51:16,092 User power consumption: 123
+2023-03-08 17:51:16,092 Owner power consumption: 105
+2023-03-08 17:51:16,092 Users left: 2
+2023-03-08 17:51:16,092 No more arrivals left?: False
+2023-03-08 17:51:16,092 #################################################################
+2023-03-08 17:51:16,092 Current time: 2.303029701494998
+2023-03-08 17:51:16,092 Current before removal users: 3
+2023-03-08 17:51:16,092 Current after removal users: 3
+2023-03-08 17:51:16,092 [Alanezi] Number of users in range: 2
+2023-03-08 17:51:16,092 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>]
+2023-03-08 17:51:16,092 List of consented: [2]
+2023-03-08 17:51:16,092 Consented: 1
+2023-03-08 17:51:16,092 User power consumption: 573
+2023-03-08 17:51:16,092 Owner power consumption: 591
+2023-03-08 17:51:16,093 Users left: 3
+2023-03-08 17:51:16,093 No more arrivals left?: False
+2023-03-08 17:51:16,093 #################################################################
+2023-03-08 17:51:16,093 Current time: 2.390005481107053
+2023-03-08 17:51:16,093 Current before removal users: 4
+2023-03-08 17:51:16,093 Current after removal users: 4
+2023-03-08 17:51:16,093 [Alanezi] Number of users in range: 3
+2023-03-08 17:51:16,093 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>]
+2023-03-08 17:51:16,093 List of consented: [1]
+2023-03-08 17:51:16,093 Consented: 1
+2023-03-08 17:51:16,093 User power consumption: 123
+2023-03-08 17:51:16,093 Owner power consumption: 105
+2023-03-08 17:51:16,093 Users left: 4
+2023-03-08 17:51:16,093 No more arrivals left?: False
+2023-03-08 17:51:16,093 #################################################################
+2023-03-08 17:51:16,093 Current time: 2.994816159870292
+2023-03-08 17:51:16,093 Current before removal users: 5
+2023-03-08 17:51:16,093 Current after removal users: 5
+2023-03-08 17:51:16,093 [Alanezi] Number of users in range: 4
+2023-03-08 17:51:16,093 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>]
+2023-03-08 17:51:16,093 List of consented: [1]
+2023-03-08 17:51:16,093 Consented: 1
+2023-03-08 17:51:16,093 User power consumption: 123
+2023-03-08 17:51:16,093 Owner power consumption: 105
+2023-03-08 17:51:16,093 Users left: 5
+2023-03-08 17:51:16,093 No more arrivals left?: False
+2023-03-08 17:51:16,094 #################################################################
+2023-03-08 17:51:16,094 Current time: 3.281411231119482
+2023-03-08 17:51:16,094 Current before removal users: 6
+2023-03-08 17:51:16,094 Current after removal users: 6
+2023-03-08 17:51:16,094 [Alanezi] Number of users in range: 5
+2023-03-08 17:51:16,094 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>]
+2023-03-08 17:51:16,094 List of consented: [1]
+2023-03-08 17:51:16,094 Consented: 1
+2023-03-08 17:51:16,094 User power consumption: 123
+2023-03-08 17:51:16,094 Owner power consumption: 105
+2023-03-08 17:51:16,094 Users left: 6
+2023-03-08 17:51:16,094 No more arrivals left?: False
+2023-03-08 17:51:16,094 #################################################################
+2023-03-08 17:51:16,094 Current time: 3.5184931883189856
+2023-03-08 17:51:16,094 Current before removal users: 7
+2023-03-08 17:51:16,094 Current after removal users: 7
+2023-03-08 17:51:16,095 [Alanezi] Number of users in range: 6
+2023-03-08 17:51:16,095 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>]
+2023-03-08 17:51:16,095 List of consented: [1]
+2023-03-08 17:51:16,095 Consented: 1
+2023-03-08 17:51:16,096 User power consumption: 123
+2023-03-08 17:51:16,096 Owner power consumption: 105
+2023-03-08 17:51:16,096 Users left: 7
+2023-03-08 17:51:16,096 No more arrivals left?: False
+2023-03-08 17:51:16,096 #################################################################
+2023-03-08 17:51:16,096 Current time: 3.815888292071844
+2023-03-08 17:51:16,096 Current before removal users: 8
+2023-03-08 17:51:16,096 Current after removal users: 8
+2023-03-08 17:51:16,096 [Alanezi] Number of users in range: 7
+2023-03-08 17:51:16,096 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>]
+2023-03-08 17:51:16,097 List of consented: [1]
+2023-03-08 17:51:16,097 Consented: 1
+2023-03-08 17:51:16,097 User power consumption: 123
+2023-03-08 17:51:16,097 Owner power consumption: 105
+2023-03-08 17:51:16,097 Users left: 8
+2023-03-08 17:51:16,097 No more arrivals left?: False
+2023-03-08 17:51:16,097 #################################################################
+2023-03-08 17:51:16,097 Current time: 3.8925659111276794
+2023-03-08 17:51:16,097 Current before removal users: 9
+2023-03-08 17:51:16,097 Current after removal users: 9
+2023-03-08 17:51:16,098 [Alanezi] Number of users in range: 8
+2023-03-08 17:51:16,098 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>]
+2023-03-08 17:51:16,098 List of consented: [1]
+2023-03-08 17:51:16,098 Consented: 1
+2023-03-08 17:51:16,098 User power consumption: 123
+2023-03-08 17:51:16,098 Owner power consumption: 105
+2023-03-08 17:51:16,098 Users left: 9
+2023-03-08 17:51:16,098 No more arrivals left?: False
+2023-03-08 17:51:16,099 #################################################################
+2023-03-08 17:51:16,099 Current time: 4.174184970440766
+2023-03-08 17:51:16,099 Current before removal users: 10
+2023-03-08 17:51:16,099 Current after removal users: 10
+2023-03-08 17:51:16,099 [Alanezi] Number of users in range: 9
+2023-03-08 17:51:16,099 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>]
+2023-03-08 17:51:16,099 List of consented: [1]
+2023-03-08 17:51:16,099 Consented: 1
+2023-03-08 17:51:16,099 User power consumption: 123
+2023-03-08 17:51:16,099 Owner power consumption: 105
+2023-03-08 17:51:16,099 Users left: 10
+2023-03-08 17:51:16,099 No more arrivals left?: False
+2023-03-08 17:51:16,099 #################################################################
+2023-03-08 17:51:16,099 Current time: 5.083763595084205
+2023-03-08 17:51:16,099 Current before removal users: 11
+2023-03-08 17:51:16,099 Current after removal users: 11
+2023-03-08 17:51:16,099 [Alanezi] Number of users in range: 10
+2023-03-08 17:51:16,099 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>]
+2023-03-08 17:51:16,099 List of consented: [1]
+2023-03-08 17:51:16,100 Consented: 1
+2023-03-08 17:51:16,100 User power consumption: 123
+2023-03-08 17:51:16,100 Owner power consumption: 105
+2023-03-08 17:51:16,100 Users left: 11
+2023-03-08 17:51:16,100 No more arrivals left?: False
+2023-03-08 17:51:16,100 #################################################################
+2023-03-08 17:51:16,100 Current time: 5.452491061104307
+2023-03-08 17:51:16,100 Current before removal users: 12
+2023-03-08 17:51:16,100 Current after removal users: 12
+2023-03-08 17:51:16,100 [Alanezi] Number of users in range: 11
+2023-03-08 17:51:16,100 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>]
+2023-03-08 17:51:16,100 List of consented: [2]
+2023-03-08 17:51:16,100 Consented: 1
+2023-03-08 17:51:16,100 User power consumption: 573
+2023-03-08 17:51:16,100 Owner power consumption: 591
+2023-03-08 17:51:16,100 Users left: 12
+2023-03-08 17:51:16,100 No more arrivals left?: False
+2023-03-08 17:51:16,100 #################################################################
+2023-03-08 17:51:16,100 Current time: 5.92189028932179
+2023-03-08 17:51:16,100 Current before removal users: 13
+2023-03-08 17:51:16,100 Current after removal users: 13
+2023-03-08 17:51:16,100 [Alanezi] Number of users in range: 12
+2023-03-08 17:51:16,101 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>]
+2023-03-08 17:51:16,101 List of consented: [1]
+2023-03-08 17:51:16,101 Consented: 1
+2023-03-08 17:51:16,101 User power consumption: 123
+2023-03-08 17:51:16,101 Owner power consumption: 105
+2023-03-08 17:51:16,101 Users left: 13
+2023-03-08 17:51:16,101 No more arrivals left?: False
+2023-03-08 17:51:16,101 #################################################################
+2023-03-08 17:51:16,101 Current time: 7.538422013073802
+2023-03-08 17:51:16,101 Current before removal users: 14
+2023-03-08 17:51:16,101 Current after removal users: 13
+2023-03-08 17:51:16,101 [Alanezi] Number of users in range: 12
+2023-03-08 17:51:16,101 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>]
+2023-03-08 17:51:16,101 List of consented: []
+2023-03-08 17:51:16,102 Consented: 0
+2023-03-08 17:51:16,102 User power consumption: 0
+2023-03-08 17:51:16,102 Owner power consumption: 0
+2023-03-08 17:51:16,102 Users left: 13
+2023-03-08 17:51:16,102 No more arrivals left?: False
+2023-03-08 17:51:16,102 #################################################################
+2023-03-08 17:51:16,102 Current time: 8.271695253246552
+2023-03-08 17:51:16,102 Current before removal users: 14
+2023-03-08 17:51:16,102 Current after removal users: 14
+2023-03-08 17:51:16,102 [Alanezi] Number of users in range: 13
+2023-03-08 17:51:16,103 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>, <user.User object at 0x10e89fdc0>]
+2023-03-08 17:51:16,103 List of consented: [1]
+2023-03-08 17:51:16,103 Consented: 1
+2023-03-08 17:51:16,103 User power consumption: 123
+2023-03-08 17:51:16,104 Owner power consumption: 105
+2023-03-08 17:51:16,104 Users left: 14
+2023-03-08 17:51:16,105 No more arrivals left?: False
+2023-03-08 17:51:16,105 #################################################################
+2023-03-08 17:51:16,105 Current time: 8.658352919228253
+2023-03-08 17:51:16,105 Current before removal users: 15
+2023-03-08 17:51:16,105 Current after removal users: 15
+2023-03-08 17:51:16,105 [Alanezi] Number of users in range: 14
+2023-03-08 17:51:16,105 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>, <user.User object at 0x10e89fdc0>, <user.User object at 0x10e89fd90>]
+2023-03-08 17:51:16,105 List of consented: [1]
+2023-03-08 17:51:16,105 Consented: 1
+2023-03-08 17:51:16,105 User power consumption: 123
+2023-03-08 17:51:16,106 Owner power consumption: 105
+2023-03-08 17:51:16,106 Users left: 15
+2023-03-08 17:51:16,106 No more arrivals left?: False
+2023-03-08 17:51:16,106 #################################################################
+2023-03-08 17:51:16,106 Current time: 9.55476526246085
+2023-03-08 17:51:16,106 Current before removal users: 16
+2023-03-08 17:51:16,106 Current after removal users: 16
+2023-03-08 17:51:16,106 [Alanezi] Number of users in range: 15
+2023-03-08 17:51:16,106 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>, <user.User object at 0x10e89fdc0>, <user.User object at 0x10e89fd90>, <user.User object at 0x10e89fd60>]
+2023-03-08 17:51:16,106 List of consented: [1]
+2023-03-08 17:51:16,106 Consented: 1
+2023-03-08 17:51:16,106 User power consumption: 123
+2023-03-08 17:51:16,106 Owner power consumption: 105
+2023-03-08 17:51:16,106 Users left: 16
+2023-03-08 17:51:16,106 No more arrivals left?: False
+2023-03-08 17:51:16,106 #################################################################
+2023-03-08 17:51:16,106 Current time: 9.78938452892213
+2023-03-08 17:51:16,107 Current before removal users: 17
+2023-03-08 17:51:16,107 Current after removal users: 17
+2023-03-08 17:51:16,107 [Alanezi] Number of users in range: 16
+2023-03-08 17:51:16,107 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>, <user.User object at 0x10e89fdc0>, <user.User object at 0x10e89fd90>, <user.User object at 0x10e89fd60>, <user.User object at 0x10e89fd30>]
+2023-03-08 17:51:16,107 List of consented: [1]
+2023-03-08 17:51:16,107 Consented: 1
+2023-03-08 17:51:16,107 User power consumption: 123
+2023-03-08 17:51:16,107 Owner power consumption: 105
+2023-03-08 17:51:16,107 Users left: 17
+2023-03-08 17:51:16,107 No more arrivals left?: False
+2023-03-08 17:51:16,107 #################################################################
+2023-03-08 17:51:16,107 Current time: 10.307839387091063
+2023-03-08 17:51:16,107 Current before removal users: 18
+2023-03-08 17:51:16,107 Current after removal users: 18
+2023-03-08 17:51:16,107 [Alanezi] Number of users in range: 17
+2023-03-08 17:51:16,107 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>, <user.User object at 0x10e89fdc0>, <user.User object at 0x10e89fd90>, <user.User object at 0x10e89fd60>, <user.User object at 0x10e89fd30>, <user.User object at 0x10e89fd00>]
+2023-03-08 17:51:16,107 List of consented: [0]
+2023-03-08 17:51:16,107 Consented: 0
+2023-03-08 17:51:16,107 User power consumption: 0
+2023-03-08 17:51:16,107 Owner power consumption: 0
+2023-03-08 17:51:16,107 Users left: 18
+2023-03-08 17:51:16,108 No more arrivals left?: True
+2023-03-08 17:51:16,108 #################################################################
+2023-03-08 17:51:16,108 Current time: 12.885683327456924
+2023-03-08 17:51:16,108 Current before removal users: 18
+2023-03-08 17:51:16,108 Current after removal users: 17
+2023-03-08 17:51:16,108 [Alanezi] Number of users in range: 17
+2023-03-08 17:51:16,108 Users in range: [<user.User object at 0x10e89f730>, <user.User object at 0x10e89f760>, <user.User object at 0x10e89f700>, <user.User object at 0x10e89f7f0>, <user.User object at 0x10e89f880>, <user.User object at 0x10e89f8b0>, <user.User object at 0x10e89f8e0>, <user.User object at 0x10e89f910>, <user.User object at 0x10e89f940>, <user.User object at 0x10e89ffd0>, <user.User object at 0x10e89ffa0>, <user.User object at 0x10e89ff10>, <user.User object at 0x10e89fdc0>, <user.User object at 0x10e89fd90>, <user.User object at 0x10e89fd60>, <user.User object at 0x10e89fd30>, <user.User object at 0x10e89fd00>]
+2023-03-08 17:51:16,108 List of consented: [0]
+2023-03-08 17:51:16,108 Consented: 0
+2023-03-08 17:51:16,108 User power consumption: 0
+2023-03-08 17:51:16,108 Owner power consumption: 0
+2023-03-08 17:51:16,108 Users left: 17
+2023-03-08 17:51:16,108 No more arrivals left?: True

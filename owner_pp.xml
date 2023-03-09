@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<privacy-policy>
+	<data-in>
+		<data-in type="video" priority="1"></data-in>
+		<retention>1-year</retention>
+		<shared>yes</shared>
+		<inferred>yes</inferred>
+	</data-in>
+	<data-in>
+		<data-in type="video" priority="2"></data-in>
+		<retention>1-year</retention>
+		<shared>no</shared>
+		<inferred>yes</inferred>
+	</data-in>
+	<data-in>
+		<data-in type="video" priority="3"></data-in>
+		<retention>30-days</retention>
+		<shared>no</shared>
+		<inferred>yes</inferred>
+	</data-in>
+	<data-in>
+		<data-in type="video" priority="4"></data-in>
+		<retention>30-days</retention>
+		<shared>no</shared>
+		<inferred>no</inferred>
+	</data-in>
+</privacy-policy>

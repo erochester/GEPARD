@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<privacy-policy>
+	<data-out>
+		<data-out type="video" priority="1">
+		<retention>30-days</retention>
+		<shared>no</shared>
+		<inferred>no</inferred>
+		</data-out>
+	</data-out>
+</privacy-policy>
