@@ -140,11 +140,7 @@ class NegotiationProtocol:
                     u.update_consent(True)
                     user_consent.append(1)
 
-            # Network power consumption calculations
-            # FIXME: later we put into a separate module to be able to easily exchange the protocols
-            # FIXME: in power consumption account that the last packet will not be 100% full with payload,
-            #  so may need less power
-
+        # Network power consumption calculations
         # now we iterate through user consent and sum up the power consumption
         for u in user_consent:
             # check how many phases in negotiation

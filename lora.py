@@ -5,14 +5,14 @@ class Lora:
 
     def __init__(self):
         self.voltage = 3.3
-        self.i_rx = 11.2
+        self.i_rx = 11.2  # mA
         self.cr = 4 / 5
         # initial values
         # are adjusted during each send and receive
         self.lora_max_payload = 51
         self.sf = 10
         self.bw = 250
-        self.i_tx = 125
+        self.i_tx = 125  # mA
 
     def send(self, payload):
 
@@ -33,12 +33,12 @@ class Lora:
             t_tx = t_temp_tx
 
         n_phy = 8 + max(math.ceil((28 + 8 * self.lora_max_payload + 4 * self.sf) /
-                                      (4 * self.sf)) * (self.cr + 4), 0)
+                                  (4 * self.sf)) * (self.cr + 4), 0)
         t_phy = t_sym * n_phy
         t_temp_tx = t_pre + t_phy
         t_tx += t_temp_tx
 
-        return t_tx * self.voltage * self.i_tx
+        return t_tx / 3600 * self.voltage * self.i_tx / 1000
 
     def receive(self, payload):
         # TODO: there is no difference between send and receive
@@ -59,12 +59,12 @@ class Lora:
             t_tx = t_temp_tx
 
         n_phy = 8 + max(math.ceil((28 + 8 * self.lora_max_payload + 4 * self.sf) /
-                                      (4 * self.sf)) * (self.cr + 4), 0)
+                                  (4 * self.sf)) * (self.cr + 4), 0)
         t_phy = t_sym * n_phy
         t_temp_tx = t_pre + t_phy
         t_tx += t_temp_tx
 
-        return t_tx * self.voltage * self.i_tx
+        return t_tx / 3600 * self.voltage * self.i_tx / 1000
 
     def determine_mode(self, payload):
         # the pp size determines the mode we will use

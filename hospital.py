@@ -1,28 +1,26 @@
-import numpy as np
-import random
 import math
-from user import User
-from iot_device import IoTDevice
+import random
 
 # visualization imports
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Circle
 
+from user import User
 
-class ShoppingMall:
+
+class Hospital:
 
     def __init__(self, list_of_users, iot_device):
         self.list_of_users = list_of_users
         self.iot_device = iot_device
 
     def generate_scenario(self):
-        # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
-        # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
-        last_arrival = 10 * 60
+        # The hospital works 24/7
+        last_arrival = 24 * 60
 
-        # Arrival lambda is assumed from shopping mall data analysis papers
-        # for now it is set to 2 (meaning 2 users arrive per minute)
-        lmbd = 2
+        # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
+        lmbd = 0.1584
 
         # Initialize arrival time
         arrival_time = 0
@@ -30,13 +28,14 @@ class ShoppingMall:
         # Initial user id
         user_id = 0
 
-        # The shopping mall IoT device has operational range of 40 meters
+        # The hospital IoT device has operational range of 40 meters
         radius = 40
 
-        # New arrivals come until 8 pm
+        # New arrivals come until midnight as we simulate 1 full day
         while arrival_time <= last_arrival:
             # Generate the speed
-            speed = np.random.uniform(0.27, 1.5)
+            # reduce speed by 10% as in hospital people will slow down
+            speed = 0.9 * np.random.uniform(0.27, 1.5)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -59,6 +58,10 @@ class ShoppingMall:
             else:
                 privacy_label = 3
                 privacy_coeff = random.uniform(0.031, 0.10)
+
+            # Adjust privacy coefficient to be higher since hospital is more sensitive environment
+            # TODO: this doesn't seem to have any implications right now
+            privacy_coeff = 1.5 * privacy_coeff
 
             # Create the user and append to the list
             user = User(user_id, speed, (x_a, y_a), (x_d, y_d), privacy_label, privacy_coeff)
