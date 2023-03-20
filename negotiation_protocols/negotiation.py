@@ -1,7 +1,7 @@
 from util import check_distance
 import random
-from cunche import Cunche
-from alanezi import Alanezi
+from negotiation_protocols.cunche import Cunche
+from negotiation_protocols.alanezi import Alanezi
 
 
 class NegotiationProtocol:

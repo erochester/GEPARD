@@ -1,28 +1,26 @@
 import argparse
 import logging
 import random
-import csv
-import os.path
+import xml.etree.ElementTree as ET
 
 from driver import Driver
 from iot_device import IoTDevice
-from negotiation import NegotiationProtocol
-from network import Network
-from scenario import Scenario
+from negotiation_protocols.negotiation import NegotiationProtocol
+from networks.network import Network
+from scenarios.scenario import Scenario
+from util import result_file_util, write_results
 
 
-def main():
-    random.seed(123)
+def main(scenario_name, network_type, algo, filename):
 
-    if not args.algo or not args.network:
-        print("[!] Please provide -a and -n arguments to setup algorithm and network type.")
-        exit(1)
-    algo = args.algo
-    print("[!] Algorithm: ", algo)
-    network_type = args.network
-    print("[!] Network: ", network_type)
-    scenario_name = args.scenario
-    print("[!] Scenario: ", scenario_name)
+    # make scenario lower case for consistency
+    scenario_name = scenario_name.lower()
+
+    # same for the network type
+    network_type = network_type.lower()
+
+    # same for the algorithm
+    algo = algo.lower()
 
     # create the scenario that determines user types, locations and movement patterns, network parameters and
     # simulation runtime
@@ -56,22 +54,7 @@ def main():
              total_consented, len(list_of_users), round((total_consented / len(list_of_users)) * 100, 2),
              round(end_time, 2)]]
 
-    # Open a file for writing
-    filename = "results.csv"
-    mode = "a" if os.path.exists(filename) else "w"
-    with open(filename, mode) as csvfile:
-        # Create a CSV writer object
-        csvwriter = csv.writer(csvfile)
-
-        # Write the column headers only if the file is newly created
-        if mode == "w":
-            fields = ["Algorithm", "Network", "Scenario", "Total User Power Consumption (kWh)",
-                      "Total Owner Power Consumption (kWh)", "Consent collected from", "Total user number",
-                      "Consent Percentage", "Total runtime (min)"]
-            csvwriter.writerow(fields)
-
-        # Write the data rows
-        csvwriter.writerows(rows)
+    write_results(filename, rows)
 
 
 if __name__ == "__main__":
@@ -87,12 +70,52 @@ if __name__ == "__main__":
     # Initialize parser
     parser = argparse.ArgumentParser(description=msg)
 
+    filename = "results.csv"
+    result_file_util(filename)
+
     # Adding optional argument
     parser.add_argument("-a", "--algo", help="Algorithm to use, e.g., alanezi")
     parser.add_argument("-n", "--network", help="Network protocol to use, e.g., ble")
     parser.add_argument("-s", "--scenario", help="Scenario to use, e.g., shopping_mall")
+    parser.add_argument("-t", "--tournament", help="Tournament-styled testing", action='store_true')
 
     # Read arguments from command line
     args = parser.parse_args()
 
-    main()
+    # default seed for reproducibility
+    random.seed(123)
+
+    if args.tournament:
+        # Load the XML file
+        tree = ET.parse('tournament_setup.xml')
+        root = tree.getroot()
+        runs = int(root.find('runs').text)
+        networks = [network.text for network in root.findall('networks/network')]
+        scenarios = [scenario.text for scenario in root.findall('scenarios/scenario')]
+        algorithms = [algorithm.text for algorithm in root.findall('algorithms/algorithm')]
+        # Run the code for each combination of algorithm, network, and scenario
+        for algorithm in algorithms:
+            for network in networks:
+                for scenario in scenarios:
+                    for i in range(runs):
+                        # use run number for seed
+                        random.seed(i + 1)
+                        # Run your code here with the current combination of algorithm, network, and scenario
+                        print(f"Run {i + 1} of {runs} for algorithm {algorithm}, network {network}, "
+                              f"and scenario {scenario}")
+                        main(scenario, network, algorithm, filename)
+    else:
+        if not args.algorithm or not args.network or not args.scenario:
+            parser.error("[!] Please provide -a, -s and -n arguments to setup algorithm, scenario and network type.")
+            exit(1)
+        algo = args.algo
+        print("[!] Algorithm: ", algo)
+        network_type = args.network
+        print("[!] Network: ", network_type)
+        scenario_name = args.scenario
+        print("[!] Scenario: ", scenario_name)
+
+        main(scenario_name, network_type, algo, filename)
+
+
+

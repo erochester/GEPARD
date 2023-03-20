@@ -1,5 +1,5 @@
-from ble import BLE
-from lora import Lora
+from networks.ble import BLE
+from networks.lora import Lora
 
 
 class Network:

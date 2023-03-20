@@ -1,0 +1,15 @@
+<simulation>
+  <runs>40</runs>
+  <networks>
+    <network>BLE</network>
+    <network>LORA</network>
+  </networks>
+  <scenarios>
+    <scenario>hospital</scenario>
+    <scenario>shoppingmall</scenario>
+  </scenarios>
+  <algorithms>
+    <algorithm>alanezi</algorithm>
+    <algorithm>cunche</algorithm>
+  </algorithms>
+</simulation>
