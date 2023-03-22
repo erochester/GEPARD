@@ -21,6 +21,8 @@ class Driver:
 
         total_user_power_consumption = 0  # defines the total power consumption of the user
         total_owner_power_consumption = 0  # defines the total power consumption of the owner
+        total_user_time_spent = 0  # defines the total time spent by the user
+        total_owner_time_spent = 0 # defines the total time spent by the owner
         total_consented = 0  # defines the number of users that consented
 
         self.logger.debug("Total Number of Users: " + str(len(self.scenario.list_of_users)))
@@ -53,8 +55,8 @@ class Driver:
                     )
                 )
 
-            user_consent, applicable_users, total_user_power_consumption_tmp, total_owner_power_consumption_tmp = \
-                    self.negotiation_protocol.run(curr_users_list)
+            user_consent, applicable_users, total_user_power_consumption_tmp, total_owner_power_consumption_tmp, \
+                total_user_time_spent_tmp, total_owner_time_spent_tmp = self.negotiation_protocol.run(curr_users_list)
 
             self.logger.debug("Users in range: " + str(applicable_users))
             self.logger.debug("List of consented: " + str(user_consent))
@@ -65,6 +67,8 @@ class Driver:
             total_consented += len([x for x in user_consent if x > 0])
             total_user_power_consumption += total_user_power_consumption_tmp
             total_owner_power_consumption += total_owner_power_consumption_tmp
+            total_user_time_spent += total_user_time_spent_tmp
+            total_owner_time_spent += total_owner_time_spent_tmp
 
             # Go to the next user under review
             uur += 1
@@ -85,4 +89,5 @@ class Driver:
                 curr_t = self.scenario.list_of_users[uur].arr_time
                 curr_users_list.append(self.scenario.list_of_users[uur])
 
-        return total_consented, total_user_power_consumption, total_owner_power_consumption, curr_t
+        return total_consented, total_user_power_consumption, total_owner_power_consumption, \
+            total_user_time_spent, total_owner_time_spent, curr_t

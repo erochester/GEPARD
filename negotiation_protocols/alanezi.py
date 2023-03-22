@@ -17,6 +17,8 @@ class Alanezi:
 
         total_user_power_consumption = 0
         total_owner_power_consumption = 0
+        total_user_time_spent = 0
+        total_owner_time_spent = 0
 
         # FIXME: for now we assume that the IoT owner precisely knows the user's privacy preferences and
         #  what to offer to them
@@ -87,35 +89,52 @@ class Alanezi:
             if u == 1:
                 # the user sends the PP to the owner
                 # it will take user_pp_packets transmissions on the IoT user side
-                total_user_power_consumption += self.network.send(user_pp_size)
+                power_consumed, time_spent = self.network.send(user_pp_size)
+                total_user_power_consumption += power_consumed
+                total_user_time_spent += time_spent
 
                 # the owner accepts the PP and starts "relaying" the data or
                 # collecting the data, as such the negotiation is done
-                total_owner_power_consumption += self.network.receive(user_pp_size)
+                power_consumed, time_spent = self.network.receive(user_pp_size)
+                total_owner_power_consumption += power_consumed
+                total_owner_time_spent += time_spent
             # if negotiation is 2 phases
             elif u == 2:
                 # in 2 phase negotiation we start exactly the same way as in 1 phase
                 # the user sends the PP to the owner
                 # it will take user_pp_packets transmissions on the IoT user side
-                total_user_power_consumption += self.network.send(user_pp_size)
+                power_consumed, time_spent = self.network.send(user_pp_size)
+                total_user_power_consumption += power_consumed
+                total_user_time_spent += time_spent
 
                 # the owner accepts the PP and starts "relaying" the data or collecting the data,
                 # as such the negotiation is done
-                total_owner_power_consumption += self.network.receive(user_pp_size)
+                power_consumed, time_spent = self.network.receive(user_pp_size)
+                total_owner_power_consumption += power_consumed
+                total_owner_time_spent += time_spent
 
                 # following that, however, the owner sends a different proposal
-                total_owner_power_consumption += self.network.send(owner_pp_size)
+                power_consumed, time_spent = self.network.send(owner_pp_size)
+                total_owner_power_consumption += power_consumed
+                total_owner_time_spent += time_spent
 
                 # user receives the owner pp
-                total_user_power_consumption += self.network.receive(owner_pp_size)
+                power_consumed, time_spent = self.network.receive(owner_pp_size)
+                total_user_power_consumption += power_consumed
+                total_user_time_spent += time_spent
 
                 # the user then sends the reply
-                total_user_power_consumption += self.network.send(user_pp_size)
+                power_consumed, time_spent = self.network.send(user_pp_size)
+                total_user_power_consumption += power_consumed
+                total_user_time_spent += time_spent
 
                 # owner receives it
-                total_owner_power_consumption += self.network.receive(user_pp_size)
+                power_consumed, time_spent = self.network.receive(user_pp_size)
+                total_owner_power_consumption += power_consumed
+                total_owner_time_spent += time_spent
 
         # FIXME: we can also add timing information, but I don't think there is a point in it right now
         # now we can return the number of contacted users, how many consented, after how many rounds and
         # how much energy was consumed
-        return user_consent, applicable_users, total_user_power_consumption, total_owner_power_consumption
+        return user_consent, applicable_users, total_user_power_consumption, total_owner_power_consumption, \
+            total_user_time_spent, total_owner_time_spent

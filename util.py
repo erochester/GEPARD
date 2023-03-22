@@ -44,8 +44,9 @@ def write_results(filename, rows):
         # Write the column headers only if the file is newly created
         if mode == "w":
             fields = ["Algorithm", "Network", "Scenario", "Total User Power Consumption (kWh)",
-                      "Total Owner Power Consumption (kWh)", "Consent collected from", "Total user number",
-                      "Consent Percentage", "Total runtime (min)"]
+                      "Total Owner Power Consumption (kWh)", "Total User Time Spent (s)", "Total Owner Time Spent (s)",
+                      "Consent collected from", "Total user number",
+                      "Consent Percentage (%)", "Total runtime (min)"]
             csvwriter.writerow(fields)
 
         # Write the data rows

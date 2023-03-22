@@ -38,7 +38,7 @@ class Lora:
         t_temp_tx = t_pre + t_phy
         t_tx += t_temp_tx
 
-        return t_tx / 3600 * self.voltage * self.i_tx / 1000
+        return t_tx / 3600 * self.voltage * self.i_tx / 1000, t_tx
 
     def receive(self, payload):
         # TODO: there is no difference between send and receive
@@ -64,7 +64,7 @@ class Lora:
         t_temp_tx = t_pre + t_phy
         t_tx += t_temp_tx
 
-        return t_tx / 3600 * self.voltage * self.i_tx / 1000
+        return t_tx / 3600 * self.voltage * self.i_tx / 1000, t_tx
 
     def determine_mode(self, payload):
         # the pp size determines the mode we will use

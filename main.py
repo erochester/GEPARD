@@ -44,13 +44,13 @@ def main(scenario_name, network_type, algo, filename):
 
     driver = Driver(scenario, network, negotiation_protocol, logger)
 
-    total_consented, total_user_power_consumption, total_owner_power_consumption, end_time = \
-        driver.run()  # drives the simulation environment
+    total_consented, total_user_power_consumption, total_owner_power_consumption, \
+        total_user_time_spent, total_owner_time_spent, end_time = driver.run()  # drives the simulation environment
 
     # Write to csv
     # Define the data rows
     rows = [[algo, network_type, scenario_name, round(total_user_power_consumption, 2),
-             round(total_owner_power_consumption, 2),
+             round(total_owner_power_consumption, 2), round(total_user_time_spent, 2), round(total_owner_time_spent, 2),
              total_consented, len(list_of_users), round((total_consented / len(list_of_users)) * 100, 2),
              round(end_time, 2)]]
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # Initialize parser
     parser = argparse.ArgumentParser(description=msg)
 
-    filename = "results.csv"
+    filename = "./results/results.csv"
     result_file_util(filename)
 
     # Adding optional argument
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                               f"and scenario {scenario}")
                         main(scenario, network, algorithm, filename)
     else:
-        if not args.algorithm or not args.network or not args.scenario:
+        if not args.algo or not args.network or not args.scenario:
             parser.error("[!] Please provide -a, -s and -n arguments to setup algorithm, scenario and network type.")
             exit(1)
         algo = args.algo
