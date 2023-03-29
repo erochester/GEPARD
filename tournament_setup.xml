@@ -3,8 +3,10 @@
   <networks>
     <network>BLE</network>
     <network>LORA</network>
+    <network>WIFI</network>
   </networks>
   <scenarios>
+    <scenario>university</scenario>
     <scenario>hospital</scenario>
     <scenario>shoppingmall</scenario>
   </scenarios>

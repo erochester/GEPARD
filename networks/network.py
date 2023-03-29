@@ -1,5 +1,6 @@
 from networks.ble import BLE
 from networks.lora import Lora
+from networks.wifi import WiFi
 
 
 class Network:
@@ -10,6 +11,8 @@ class Network:
             self.technology = BLE()
         elif tech == "lora":
             self.technology = Lora()
+        elif tech == "wifi":
+            self.technology = WiFi()
 
     def send(self, payload):
         return self.technology.send(payload)

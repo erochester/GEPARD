@@ -9,6 +9,7 @@ from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
 from scenarios.scenario import Scenario
 from util import result_file_util, write_results
+from process_results import ResultProcessor
 
 
 def main(scenario_name, network_type, algo, filename):
@@ -116,6 +117,11 @@ if __name__ == "__main__":
         print("[!] Scenario: ", scenario_name)
 
         main(scenario_name, network_type, algo, filename)
+
+    # Process results
+    result_processor = ResultProcessor()
+    result_processor.process_results()
+    result_processor.plot_results()
 
 
 

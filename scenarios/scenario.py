@@ -1,5 +1,6 @@
 from scenarios.shopping_mall import ShoppingMall
 from scenarios.hospital import Hospital
+from scenarios.university import University
 
 
 class Scenario:
@@ -10,6 +11,8 @@ class Scenario:
             self.scenario = ShoppingMall(list_of_users, iot_device)
         elif scenario == "hospital":
             self.scenario = Hospital(list_of_users, iot_device)
+        elif scenario == "university":
+            self.scenario = University(list_of_users, iot_device)
 
     def generate_scenario(self):
         return self.scenario.generate_scenario()
