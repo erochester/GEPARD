@@ -1,4 +1,4 @@
-from util import check_distance
+from util import check_distance, calc_utility
 import random
 
 
@@ -7,7 +7,7 @@ class Cunche:
     def __init__(self, network):
         self.network = network
 
-    def run(self, curr_users_list):
+    def run(self, curr_users_list, iot_device):
         # list of consented users
         user_consent = []
 
@@ -35,19 +35,15 @@ class Cunche:
                     # for fundamentalists, we offer we see if user is in 79.6% non-consenting
                     if random.random() <= 0.796:
                         u.update_consent(True)
-                        user_consent.append(1)
-                    else:
-                        user_consent.append(0)
                 # everyone else consents
                 else:
                     u.update_consent(True)
-                    user_consent.append(1)
 
         # now we iterate through user consent and sum up the power consumption
-        for u in user_consent:
+        for u in applicable_users:
             # if 0 we don't do anything
             # if 1 phase
-            if u == 1:
+            if u.consent:
                 # the owner sends the PP to the user
                 # it will take owner_pp_packets transmissions on the IoT user side
                 power_consumed, time_spent = self.network.send(owner_pp_size)
@@ -68,6 +64,13 @@ class Cunche:
                 power_consumed, time_spent = self.network.receive(user_pp_size)
                 total_owner_power_consumption += power_consumed
                 total_owner_time_spent += time_spent
+
+                # update utility
+                user_utility = calc_utility(total_user_time_spent, total_user_power_consumption, u.weights)
+                u.update_utility(u.utility + user_utility)
+
+                owner_utility = calc_utility(total_owner_time_spent, total_owner_power_consumption, iot_device.weights)
+                iot_device.update_utility(iot_device.utility + owner_utility)
 
         return user_consent, applicable_users, total_user_power_consumption, total_owner_power_consumption, \
             total_user_time_spent, total_owner_time_spent

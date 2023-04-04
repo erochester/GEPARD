@@ -10,11 +10,11 @@ class NegotiationProtocol:
         self.network = network
         self.logger = logger
 
-    def run(self, list_of_users):
+    def run(self, list_of_users, iot_device):
         if self.algo == "alanezi":
             alanezi = Alanezi(self.network)
-            return alanezi.run(list_of_users)
+            return alanezi.run(list_of_users, iot_device)
         elif self.algo == "cunche":
             cunche = Cunche(self.network)
-            return cunche.run(list_of_users)
+            return cunche.run(list_of_users, iot_device)
 

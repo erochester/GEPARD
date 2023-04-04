@@ -2,6 +2,7 @@ import argparse
 import logging
 import random
 import xml.etree.ElementTree as ET
+import numpy as np
 
 from driver import Driver
 from iot_device import IoTDevice
@@ -46,14 +47,15 @@ def main(scenario_name, network_type, algo, filename):
     driver = Driver(scenario, network, negotiation_protocol, logger)
 
     total_consented, total_user_power_consumption, total_owner_power_consumption, \
-        total_user_time_spent, total_owner_time_spent, end_time = driver.run()  # drives the simulation environment
+        total_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
+        = driver.run()  # drives the simulation environment
 
     # Write to csv
     # Define the data rows
     rows = [[algo, network_type, scenario_name, round(total_user_power_consumption, 2),
              round(total_owner_power_consumption, 2), round(total_user_time_spent, 2), round(total_owner_time_spent, 2),
              total_consented, len(list_of_users), round((total_consented / len(list_of_users)) * 100, 2),
-             round(end_time, 2)]]
+             round(end_time, 2), round(np.mean([u.utility for u in list_of_users]), 2), round(iot_device.utility, 2)]]
 
     write_results(filename, rows)
 

@@ -60,8 +60,16 @@ class ShoppingMall:
                 privacy_label = 3
                 privacy_coeff = random.uniform(0.031, 0.10)
 
+            # Define weights for utility calculation
+            # for shopping mall scenario we assume that energy consumed is more important than service provided for user
+            # but that data collected is more important than energy consumed for IoT device
+            # first is data/service and second is energy
+            weights = [0.2, 0.8]
+
+            self.iot_device.update_weights([0.8, 0.2])
+
             # Create the user and append to the list
-            user = User(user_id, speed, (x_a, y_a), (x_d, y_d), privacy_label, privacy_coeff)
+            user = User(user_id, speed, (x_a, y_a), (x_d, y_d), privacy_label, privacy_coeff, weights)
             self.list_of_users.append(user)
             user_id += 1
 

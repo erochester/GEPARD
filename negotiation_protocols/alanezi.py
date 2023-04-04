@@ -1,4 +1,4 @@
-from util import check_distance
+from util import check_distance, calc_utility
 import random
 
 
@@ -7,7 +7,7 @@ class Alanezi:
     def __init__(self, network):
         self.network = network
 
-    def run(self, curr_users_list):
+    def run(self, curr_users_list, iot_device):
         # list of consented users
         user_consent = []
 
@@ -79,10 +79,13 @@ class Alanezi:
                     # for unconcerned we always consent with 1 phase
                     u.update_consent(True)
                     user_consent.append(1)
+            else:
+                # if user already consented we don't do anything
+                user_consent.append(0)
 
         # Network power consumption calculations
         # now we iterate through user consent and sum up the power consumption
-        for u in user_consent:
+        for index, u in enumerate(user_consent):
             # check how many phases in negotiation
             # if 0 we don't do anything
             # if 1 phase
@@ -132,6 +135,14 @@ class Alanezi:
                 power_consumed, time_spent = self.network.receive(user_pp_size)
                 total_owner_power_consumption += power_consumed
                 total_owner_time_spent += time_spent
+
+            # update utility
+            user_utility = calc_utility(total_user_time_spent, total_user_power_consumption,
+                                        applicable_users[index].weights)
+            applicable_users[index].update_utility(applicable_users[index].utility + user_utility)
+
+            owner_utility = calc_utility(total_owner_time_spent, total_owner_power_consumption, iot_device.weights)
+            iot_device.update_utility(iot_device.utility + owner_utility)
 
         # FIXME: we can also add timing information, but I don't think there is a point in it right now
         # now we can return the number of contacted users, how many consented, after how many rounds and

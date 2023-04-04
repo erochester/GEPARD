@@ -3,6 +3,13 @@ import shutil
 import os
 import csv
 
+def calc_utility(time, energy, weights):
+    # Calculate the utility of the device
+    # Use linear additive utility function
+    utility = 0
+    utility += weights[0] * time
+    utility += weights[1] * energy
+    return utility
 
 def check_distance(curr_loc, distance):
     if np.sqrt((curr_loc[0] ** 2 + curr_loc[1] ** 2)) >= distance:
@@ -46,7 +53,7 @@ def write_results(filename, rows):
             fields = ["Algorithm", "Network", "Scenario", "Total User Power Consumption (kWh)",
                       "Total Owner Power Consumption (kWh)", "Total User Time Spent (s)", "Total Owner Time Spent (s)",
                       "Consent collected from", "Total user number",
-                      "Consent Percentage (%)", "Total runtime (min)"]
+                      "Consent Percentage (%)", "Total runtime (min)", "Average User Utility", "Total Owner Utility"]
             csvwriter.writerow(fields)
 
         # Write the data rows

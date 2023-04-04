@@ -56,7 +56,8 @@ class Driver:
                 )
 
             user_consent, applicable_users, total_user_power_consumption_tmp, total_owner_power_consumption_tmp, \
-                total_user_time_spent_tmp, total_owner_time_spent_tmp = self.negotiation_protocol.run(curr_users_list)
+                total_user_time_spent_tmp, total_owner_time_spent_tmp = \
+                self.negotiation_protocol.run(curr_users_list, self.scenario.iot_device)
 
             self.logger.debug("Users in range: " + str(applicable_users))
             self.logger.debug("List of consented: " + str(user_consent))
@@ -90,4 +91,4 @@ class Driver:
                 curr_users_list.append(self.scenario.list_of_users[uur])
 
         return total_consented, total_user_power_consumption, total_owner_power_consumption, \
-            total_user_time_spent, total_owner_time_spent, curr_t
+            total_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device

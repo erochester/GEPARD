@@ -63,8 +63,16 @@ class Hospital:
             # TODO: this doesn't seem to have any implications right now
             privacy_coeff = 1.5 * privacy_coeff
 
+            # Define weights for utility calculation
+            # for hospital scenario we assume that service provided is more important than energy consumed for user
+            # and that data collected is more important than energy consumed for IoT device
+            # first is data/service and second is energy
+            weights = [0.9, 0.1]
+
+            self.iot_device.update_weights(weights)
+
             # Create the user and append to the list
-            user = User(user_id, speed, (x_a, y_a), (x_d, y_d), privacy_label, privacy_coeff)
+            user = User(user_id, speed, (x_a, y_a), (x_d, y_d), privacy_label, privacy_coeff, weights)
             self.list_of_users.append(user)
             user_id += 1
 

@@ -1,6 +1,6 @@
 class User:
 
-    def __init__(self, id_, speed, arr_loc, dep_loc, privacy_label, privacy_coeff):
+    def __init__(self, id_, speed, arr_loc, dep_loc, privacy_label, privacy_coeff, weights):
         self.id_ = id_
         self.speed = speed
         self.arr_loc = arr_loc
@@ -11,6 +11,11 @@ class User:
         self.arr_time = 0
         self.dep_time = 0
         self.curr_loc = 0
+        self.utility = 0
+        self.weights = weights
+
+    def update_utility(self, utility):
+        self.utility = utility
 
     def update_location(self, curr_loc):
         self.curr_loc = curr_loc
