@@ -63,6 +63,15 @@ def result_file_util(filename):
 
 
 def write_results(filename, rows):
+    # Check if the directory exists, if not create it
+    directory = os.path.dirname(filename)
+    if directory != '' and not os.path.exists(directory):
+        create_dir = input(f"The directory {directory} does not exist. Do you want to create it? (y/n): ")
+        if create_dir.lower() == 'y':
+            os.makedirs(directory)
+        else:
+            print("The directory does not exist. Please create it and try again.")
+            exit(-1)
     # Open a file for writing
     mode = "a" if os.path.exists(filename) else "w"
     with open(filename, mode) as csvfile:

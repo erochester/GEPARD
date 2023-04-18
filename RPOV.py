@@ -1,10 +1,19 @@
 import pandas as pd
-
-# Read in the CSV file
-df = pd.read_csv('./results/results.csv')
-
+import os
 import statsmodels.formula.api as smf
 import statsmodels.stats.anova as sma
+
+
+# Ask user for file path
+file_path = input("Enter file path to results file (.csv): ")
+
+# Check if file exists
+if not os.path.isfile(file_path):
+    print("File not found. Exiting...")
+    exit()
+
+# Read in the CSV file
+df = pd.read_csv(file_path)
 
 # replace 'Average User Utility' and 'Total User Power Consumption (kWh)' with the column names you want to analyze
 for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power Consumption (kWh)',
