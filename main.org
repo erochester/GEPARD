@@ -320,7 +320,57 @@ The metrics that were proposed for the Candidacy are:
  - Coverage
  - Effect Size
 
- For now we will focus on *energy-efficiency* and *coverage*. *Profitability* will have to be defined in a way to be applicable in all proposed methodologies and, as such, will be measured when other works are implemented. *Effect size* I need to research more on how precisely to do it in simulator (look at Baarslag). *Accuracy* for now is also ignored, as we assume perfect knowledge from IoT owner. 
+ For now we will focus on *energy-efficiency* and *coverage*. *Profitability* will have to be defined in a way to be applicable in all proposed methodologies and, as such, will be measured when other works are implemented. *Effect size* I need to research more on how precisely to do it in simulator (look at Baarslag). *Accuracy* for now is also ignored, as we assume perfect knowledge from IoT owner.
+
+* Diagrams
+
+** Alanezi
+
+  +-------------+                       +-------------+
+        | IoT User    |                       | IoT Owner   |
+        +-------------+                       +-------------+
+                |                                         |
+                | Access Request with usage requirements   |
+                | <data-in> element from user policy        |
+                |---------------------------------------->|
+                |                                         |
+                | Checks utility of request using          |
+                | utility function                         |
+                |<------------- Accepts request if utility  |
+                |              is equal or higher           |
+                |                                         |
+                | Connects to IoT user                      |
+                | and acts as relay to forward              |
+                | sensor information                        |
+                |<----------------------------------------|
+                |                                         |
+
+** Cunche
+
+Privacy Beacon                          Gateway Device                          DS Device
+  Broadcasts DC Policy                Receives DC Policy
+           |                                       |
+           |         Compares DC Policy with        |
+           |<------------- Current DS Policy       |
+           |                                       |
+           |      Sends Consent Message (if        |
+           |      policies comply) through         |
+           |<------------ Attribute Protocol       |
+           |      Stores Consent by tracking       |
+           |                                       |
+           |  Checks Consent for Device Identifier |
+           |     (MAC address) for each collected   |
+           |              data item                |
+           |                                       |
+           |  Undertakes Negotiation (if policies   |
+           |      do not comply) by sending DS      |
+           |     Policy to Privacy Beacon,          |
+           |  computing agreed terms, and sending   |
+           |   new DC Policy (if DS terms are more  |
+           |     restrictive) to Gateway Device     |
+           |                                       |
+           |        Issues Consent to new DC        |
+           |<------------ Policy (if compliant)     |
 
 * Notes
 

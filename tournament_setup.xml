@@ -1,9 +1,9 @@
 <simulation>
-  <runs>40</runs>
+  <runs>5</runs>
   <networks>
-    <network>BLE</network>
-    <network>LORA</network>
-    <network>WIFI</network>
+    <network>ble</network>
+    <network>lora</network>
+    <network>wifi</network>
   </networks>
   <scenarios>
     <scenario>university</scenario>
@@ -13,5 +13,6 @@
   <algorithms>
     <algorithm>alanezi</algorithm>
     <algorithm>cunche</algorithm>
+    <algorithm>concession</algorithm>
   </algorithms>
 </simulation>

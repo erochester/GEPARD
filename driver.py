@@ -60,12 +60,12 @@ class Driver:
                 self.negotiation_protocol.run(curr_users_list, self.scenario.iot_device)
 
             self.logger.debug("Users in range: " + str(applicable_users))
-            self.logger.debug("List of consented: " + str(user_consent))
-            self.logger.debug("Consented: " + str(len([x for x in user_consent if x > 0])))
+            self.logger.debug("List of consented: " + str([x for x in user_consent if x.id_]))
+            self.logger.debug("Consented: " + str(len([x for x in user_consent if x.consent])))
             self.logger.debug("User power consumption: " + str(total_user_power_consumption_tmp))
             self.logger.debug("Owner power consumption: " + str(total_owner_power_consumption_tmp))
 
-            total_consented += len([x for x in user_consent if x > 0])
+            total_consented += len([x for x in user_consent if x.consent])
             total_user_power_consumption += total_user_power_consumption_tmp
             total_owner_power_consumption += total_owner_power_consumption_tmp
             total_user_time_spent += total_user_time_spent_tmp

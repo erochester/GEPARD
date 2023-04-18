@@ -3,13 +3,33 @@ import shutil
 import os
 import csv
 
+
 def calc_utility(time, energy, weights):
     # Calculate the utility of the device
-    # Use linear additive utility function
-    utility = 0
-    utility += weights[0] * time
-    utility += weights[1] * energy
+    # Use multi-attribute utility function that has been logarithmically transformed
+    k = 100 #  scaling factor
+
+    # utility = k * (weights[0] * np.log(1+time)/np.log(1+energy))
+    utility = k * np.log(1 + time) / np.log(1 + energy)
+
     return utility
+
+def calc_time_remaining(user):
+    # Calculate user's time remaining in the environment
+    # Get user's current location
+    curr_loc = user.curr_loc
+    # Get user's destination
+    dest = user.dep_loc
+    # Get user's speed
+    speed = user.speed
+
+    # Calculate distance between user's current location and destination
+    distance = np.sqrt((curr_loc[0] - dest[0]) ** 2 + (curr_loc[1] - dest[1]) ** 2)
+
+    # Calculate time it takes for user to reach destination
+    time = distance / speed
+
+    return time
 
 def check_distance(curr_loc, distance):
     if np.sqrt((curr_loc[0] ** 2 + curr_loc[1] ** 2)) >= distance:
@@ -40,6 +60,7 @@ def result_file_util(filename):
         else:
             print("Invalid choice.")
             exit(1)
+
 
 def write_results(filename, rows):
     # Open a file for writing

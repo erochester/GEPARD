@@ -1,4 +1,4 @@
-from util import check_distance, calc_utility
+from util import check_distance, calc_utility, calc_time_remaining
 import random
 
 
@@ -10,6 +10,7 @@ class Alanezi:
     def run(self, curr_users_list, iot_device):
         # list of consented users
         user_consent = []
+        user_consent_obj = []
 
         # FIXME: For now we assume 217 and 639 bytes the sizes of PP (should be dynamic?)
         user_pp_size = 217
@@ -56,8 +57,10 @@ class Alanezi:
                     if util >= 0:
                         u.update_consent(True)
                         user_consent.append(1)
+                        user_consent_obj.append(u)
                     else:
                         user_consent.append(0)
+                        user_consent_obj.append(u)
                 elif u.privacy_label == 2:
                     # for pragmatists, we have potentially 2 phase negotiation
                     # we first offer PP3
@@ -67,21 +70,26 @@ class Alanezi:
                     # if gamma is too large we will not consent
                     if gamma > 0.618:
                         user_consent.append(0)
+                        user_consent_obj.append(u)
                     elif gamma > 0.368:
                         # single phase consent
                         u.update_consent(True)
                         user_consent.append(1)
+                        user_consent_obj.append(u)
                     else:
                         # two phase consent
                         u.update_consent(True)
                         user_consent.append(2)
+                        user_consent_obj.append(u)
                 else:
                     # for unconcerned we always consent with 1 phase
                     u.update_consent(True)
                     user_consent.append(1)
+                    user_consent_obj.append(u)
             else:
                 # if user already consented we don't do anything
                 user_consent.append(0)
+                user_consent_obj.append(u)
 
         # Network power consumption calculations
         # now we iterate through user consent and sum up the power consumption
@@ -89,18 +97,37 @@ class Alanezi:
             # check how many phases in negotiation
             # if 0 we don't do anything
             # if 1 phase
+
+            curr_user_power_consumption = 0
+            curr_owner_power_consumption = 0
+            curr_user_time_spent = 0
+            curr_owner_time_spent = 0
+
             if u == 1:
                 # the user sends the PP to the owner
                 # it will take user_pp_packets transmissions on the IoT user side
                 power_consumed, time_spent = self.network.send(user_pp_size)
                 total_user_power_consumption += power_consumed
                 total_user_time_spent += time_spent
+                curr_user_power_consumption = power_consumed
+                curr_user_time_spent = time_spent
 
                 # the owner accepts the PP and starts "relaying" the data or
                 # collecting the data, as such the negotiation is done
                 power_consumed, time_spent = self.network.receive(user_pp_size)
                 total_owner_power_consumption += power_consumed
                 total_owner_time_spent += time_spent
+                curr_owner_power_consumption = power_consumed
+                curr_owner_time_spent = time_spent
+
+                # update utility
+                user_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_user_power_consumption,
+                                            applicable_users[index].weights)
+                applicable_users[index].update_utility(user_utility)
+
+                owner_utility = calc_utility(calc_time_remaining(user_consent_obj[index]),
+                                             curr_owner_power_consumption, iot_device.weights)
+                iot_device.update_utility(iot_device.utility + owner_utility)
             # if negotiation is 2 phases
             elif u == 2:
                 # in 2 phase negotiation we start exactly the same way as in 1 phase
@@ -109,43 +136,60 @@ class Alanezi:
                 power_consumed, time_spent = self.network.send(user_pp_size)
                 total_user_power_consumption += power_consumed
                 total_user_time_spent += time_spent
+                curr_user_power_consumption = power_consumed
+                curr_user_time_spent = time_spent
 
                 # the owner accepts the PP and starts "relaying" the data or collecting the data,
                 # as such the negotiation is done
                 power_consumed, time_spent = self.network.receive(user_pp_size)
                 total_owner_power_consumption += power_consumed
                 total_owner_time_spent += time_spent
+                curr_owner_power_consumption = power_consumed
+                curr_owner_time_spent = time_spent
 
                 # following that, however, the owner sends a different proposal
                 power_consumed, time_spent = self.network.send(owner_pp_size)
                 total_owner_power_consumption += power_consumed
                 total_owner_time_spent += time_spent
+                curr_owner_power_consumption += power_consumed
+                curr_owner_time_spent += time_spent
 
                 # user receives the owner pp
                 power_consumed, time_spent = self.network.receive(owner_pp_size)
                 total_user_power_consumption += power_consumed
                 total_user_time_spent += time_spent
+                curr_user_power_consumption += power_consumed
+                curr_user_time_spent += time_spent
 
                 # the user then sends the reply
                 power_consumed, time_spent = self.network.send(user_pp_size)
                 total_user_power_consumption += power_consumed
                 total_user_time_spent += time_spent
+                curr_user_power_consumption += power_consumed
+                curr_user_time_spent += time_spent
 
                 # owner receives it
                 power_consumed, time_spent = self.network.receive(user_pp_size)
                 total_owner_power_consumption += power_consumed
                 total_owner_time_spent += time_spent
+                curr_owner_power_consumption += power_consumed
+                curr_owner_time_spent += time_spent
 
-            # update utility
-            user_utility = calc_utility(total_user_time_spent, total_user_power_consumption,
-                                        applicable_users[index].weights)
-            applicable_users[index].update_utility(applicable_users[index].utility + user_utility)
+                # update utility
+                user_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_user_power_consumption,
+                                            applicable_users[index].weights)
+                # applicable_users[index].update_utility(applicable_users[index].utility + user_utility)
+                applicable_users[index].update_utility(user_utility)
 
-            owner_utility = calc_utility(total_owner_time_spent, total_owner_power_consumption, iot_device.weights)
-            iot_device.update_utility(iot_device.utility + owner_utility)
+                owner_utility = calc_utility(calc_time_remaining(user_consent_obj[index]),
+                                             curr_owner_power_consumption, iot_device.weights)
+                iot_device.update_utility(iot_device.utility + owner_utility)
+
+        # Remove objects from user_consent_obj that have not consented based on 0 value in user_consent list
+        user_consent_obj = [user_consent_obj[i] for i in range(len(user_consent_obj)) if user_consent[i] != 0]
 
         # FIXME: we can also add timing information, but I don't think there is a point in it right now
         # now we can return the number of contacted users, how many consented, after how many rounds and
         # how much energy was consumed
-        return user_consent, applicable_users, total_user_power_consumption, total_owner_power_consumption, \
+        return user_consent_obj, applicable_users, total_user_power_consumption, total_owner_power_consumption, \
             total_user_time_spent, total_owner_time_spent

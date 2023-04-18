@@ -1,4 +1,4 @@
-from util import check_distance, calc_utility
+from util import check_distance, calc_utility, calc_time_remaining
 import random
 
 
@@ -35,12 +35,14 @@ class Cunche:
                     # for fundamentalists, we offer we see if user is in 79.6% non-consenting
                     if random.random() <= 0.796:
                         u.update_consent(True)
+                        user_consent.append(u)
                 # everyone else consents
                 else:
                     u.update_consent(True)
+                    user_consent.append(u)
 
         # now we iterate through user consent and sum up the power consumption
-        for u in applicable_users:
+        for u in user_consent:
             # if 0 we don't do anything
             # if 1 phase
             if u.consent:
@@ -66,10 +68,10 @@ class Cunche:
                 total_owner_time_spent += time_spent
 
                 # update utility
-                user_utility = calc_utility(total_user_time_spent, total_user_power_consumption, u.weights)
+                user_utility = calc_utility(calc_time_remaining(u), total_user_power_consumption, u.weights)
                 u.update_utility(u.utility + user_utility)
 
-                owner_utility = calc_utility(total_owner_time_spent, total_owner_power_consumption, iot_device.weights)
+                owner_utility = calc_utility(calc_time_remaining(u), total_owner_power_consumption, iot_device.weights)
                 iot_device.update_utility(iot_device.utility + owner_utility)
 
         return user_consent, applicable_users, total_user_power_consumption, total_owner_power_consumption, \

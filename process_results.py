@@ -28,6 +28,8 @@ class ResultProcessor:
                 owner_time = float(row["Total Owner Time Spent (s)"])
                 consent = float(row["Consent Percentage (%)"])
                 runtime = float(row["Total runtime (min)"])
+                user_utility = float(row["Average User Utility"])
+                owner_utility = float(row["Total Owner Utility"])
 
                 # Update the dictionaries
                 if algorithm not in algorithms:
@@ -48,7 +50,9 @@ class ResultProcessor:
                     "user_time": user_time,
                     "owner_time": owner_time,
                     "consent": consent,
-                    "runtime": runtime
+                    "runtime": runtime,
+                    "user utility": user_utility,
+                    "owner utility": owner_utility
                 })
 
         with open('./results/statistics.csv', mode='w', newline='') as file:
@@ -60,7 +64,10 @@ class ResultProcessor:
                  'Avg User Time', 'Min User Time', 'Max User Time', 'Std User Time',
                  'Avg Owner Time', 'Min Owner Time', 'Max Owner Time', 'Std Owner Time',
                  'Avg Consent', 'Min Consent', 'Max Consent', 'Std Consent',
-                 'Avg Runtime', 'Min Runtime', 'Max Runtime', 'Std Runtime'])
+                 'Avg Runtime', 'Min Runtime', 'Max Runtime', 'Std Runtime', 'Avg User Utility',
+                 'Min User Utility', 'Max User Utility', 'Std User Utility', 'Avg Owner Utility',
+                 'Min Owner Utility', 'Max Owner Utility', 'Std Owner Utility'
+                 ])
 
             # Find the combination with the lowest power consumption, highest user consent, and least time taken
             min_power = float("inf")
@@ -68,7 +75,7 @@ class ResultProcessor:
             best_network = ""
             best_scenario = ""
 
-            max_consent = 0
+            max_consent_test = 0
             best_algorithm_consent = ""
             best_network_consent = ""
             best_scenario_consent = ""
@@ -77,6 +84,11 @@ class ResultProcessor:
             best_algorithm_time = ""
             best_network_time = ""
             best_scenario_time = ""
+
+            max_user_utility_test = 0
+            best_algorithm_utility = ""
+            best_network_utility = ""
+            best_scenario_utility = ""
 
             # Calculate the statistics for each combination of algorithm, network, and scenario
             for algorithm, algorithm_data in algorithms.items():
@@ -88,6 +100,8 @@ class ResultProcessor:
                         owner_time = [data["owner_time"] for data in scenario_data]
                         consents = [data["consent"] for data in scenario_data]
                         runtimes = [data["runtime"] for data in scenario_data]
+                        user_utility = [data["user utility"] for data in scenario_data]
+                        owner_utility = [data["owner utility"] for data in scenario_data]
 
                         # Calculate the statistics
                         avg_user_power = round(np.mean(user_powers), 2)
@@ -96,6 +110,8 @@ class ResultProcessor:
                         avg_owner_time = round(np.mean(owner_time), 2)
                         avg_consent = round(np.mean(consents), 2)
                         avg_runtime = round(np.mean(runtimes), 2)
+                        avg_user_utility = round(np.mean(user_utility), 2)
+                        avg_owner_utility = round(np.mean(owner_utility), 2)
 
                         if min(avg_user_power, avg_owner_power) < min_power:
                             min_power = min(avg_user_power, avg_owner_power)
@@ -103,8 +119,8 @@ class ResultProcessor:
                             best_network = network
                             best_scenario = scenario
 
-                        if avg_consent > max_consent:
-                            max_consent = avg_consent
+                        if avg_consent > max_consent_test:
+                            max_consent_test = avg_consent
                             best_algorithm_consent = algorithm
                             best_network_consent = network
                             best_scenario_consent = scenario
@@ -115,12 +131,20 @@ class ResultProcessor:
                             best_network_time = network
                             best_scenario_time = scenario
 
+                        if avg_user_utility > max_user_utility_test:
+                            max_user_utility_test = avg_user_utility
+                            best_algorithm_utility = algorithm
+                            best_network_utility = network
+                            best_scenario_utility = scenario
+
                         min_user_power = round(np.min(user_powers), 2)
                         min_owner_power = round(np.min(owner_powers), 2)
                         min_user_time = round(np.min(user_time), 2)
                         min_owner_time = round(np.min(owner_time), 2)
                         min_consent = round(np.min(consents), 2)
                         min_runtime = round(np.min(runtimes), 2)
+                        min_user_utility = round(np.min(user_utility), 2)
+                        min_owner_utility = round(np.min(owner_utility), 2)
 
                         max_user_power = round(np.max(user_powers), 2)
                         max_owner_power = round(np.max(owner_powers), 2)
@@ -128,6 +152,8 @@ class ResultProcessor:
                         max_owner_time = round(np.max(owner_time), 2)
                         max_consent = round(np.max(consents), 2)
                         max_runtime = round(np.max(runtimes), 2)
+                        max_user_utility = round(np.max(user_utility), 2)
+                        max_owner_utility = round(np.max(owner_utility), 2)
 
                         std_user_power = round(np.std(user_powers), 2)
                         std_owner_power = round(np.std(owner_powers), 2)
@@ -135,6 +161,8 @@ class ResultProcessor:
                         std_owner_time = round(np.std(owner_time), 2)
                         std_consent = round(np.std(consents), 2)
                         std_runtime = round(np.std(runtimes), 2)
+                        std_user_utility = round(np.std(user_utility), 2)
+                        std_owner_utility = round(np.std(owner_utility), 2)
 
                         # Write the data to the file
                         writer.writerow(
@@ -145,7 +173,10 @@ class ResultProcessor:
                              max_owner_time,
                              std_owner_time,
                              avg_consent, min_consent,
-                             max_consent, std_consent, avg_runtime, min_runtime, max_runtime, std_runtime])
+                             max_consent, std_consent, avg_runtime, min_runtime, max_runtime, std_runtime,
+                             avg_user_utility, min_user_utility, max_user_utility, std_user_utility,
+                             avg_owner_utility, min_owner_utility, max_owner_utility, std_owner_utility])
+
             # Open the file for writing
             with open('./results/top_performers.txt', 'w') as f:
                 # Write the combination with the least power consumption to the file
@@ -161,7 +192,7 @@ class ResultProcessor:
                 f.write(f"Algorithm: {best_algorithm_consent}\n")
                 f.write(f"Network: {best_network_consent}\n")
                 f.write(f"Scenario: {best_scenario_consent}\n")
-                f.write(f"User Consent: {max_consent:.2f}\n")
+                f.write(f"User Consent: {max_consent_test:.2f}\n")
                 f.write("\n")
 
                 # Write the combination with the least time taken to the file
@@ -170,6 +201,14 @@ class ResultProcessor:
                 f.write(f"Network: {best_network_time}\n")
                 f.write(f"Scenario: {best_scenario_time}\n")
                 f.write(f"Time Taken: {min_time:.2f}\n")
+                f.write("\n")
+
+                # Write the combination with the highest user utility to the file
+                f.write("The combination with the highest user utility is:\n")
+                f.write(f"Algorithm: {best_algorithm_utility}\n")
+                f.write(f"Network: {best_network_utility}\n")
+                f.write(f"Scenario: {best_scenario_utility}\n")
+                f.write(f"User Utility: {max_user_utility_test:.2f}\n")
                 f.write("\n")
 
             # Close the file

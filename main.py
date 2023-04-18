@@ -50,6 +50,19 @@ def main(scenario_name, network_type, algo, filename):
         total_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
         = driver.run()  # drives the simulation environment
 
+    # Find the maximum utility
+    max_utility = max([u.utility for u in list_of_users])
+
+    # Find the minimum utility
+    min_utility = min([u.utility for u in list_of_users])
+
+    # Scaling utilites
+    for u in list_of_users:
+        u.utility = (u.utility - min_utility) / (max_utility - min_utility) * 100
+
+    # Scale iot device utility
+    iot_device.utility = ((iot_device.utility - min_utility) / (max_utility - min_utility) * 100)/len(list_of_users)
+
     # Write to csv
     # Define the data rows
     rows = [[algo, network_type, scenario_name, round(total_user_power_consumption, 2),
