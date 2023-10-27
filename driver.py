@@ -27,6 +27,8 @@ class Driver:
 
         self.logger.debug("Total Number of Users: " + str(len(self.scenario.list_of_users)))
 
+        # self.scenario.plot_scenario()
+
         # Run the simulation until we run out of the users/time
         while curr_t <= self.scenario.list_of_users[len(self.scenario.list_of_users) - 1].dep_time:
 

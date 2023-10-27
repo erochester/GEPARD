@@ -24,4 +24,7 @@ The code was created and tested on Python 3.9.6.
 
 The Proportion of Variation Analysis is used to evaluate the impact of different components, i.e. network, scenario, algorithm, on the performance of a privacy assistant. 
 
+**File**: RPOV.py\
+**Requirements**: Multiple algorithms, networks scenarios to be analyzed.
+
 The code expects a CSV file containing the data for the different scenarios, network and algorithm to be analyzed. The CSV file should contain columns for the network, algorithm, and scenario and measured factors. The code analyzes the data by performing an ANOVA test on each variable and factor combination. The output of the analysis is a dictionary that contains the proportion of variation explained by each factor and factor combination. The results can be used to determine the most significant factors and factor combinations that affect the privacy assistant performance the most.

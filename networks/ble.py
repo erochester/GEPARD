@@ -1,52 +1,55 @@
-import math
-
-
 class BLE:
-
     def __init__(self):
-        self.max_payload_size = 251  # bytes
+        self.current = {}
+        self.time = {}
+        self.voltage = {}
 
-        self.voltage = 3.3
-        self.i_tx = 25  # mA
-        self.i_pre = 1  # mA
-        self.i_post = 1  # mA
-        self.i_ifs = 0.002  # mA
-        self.i_rx = 0.01  # mA
+    def send(self, mode, payload_size, time_in_seconds):
+        if mode not in self.current:
+            raise ValueError(f"Invalid BLE mode: {mode}")
 
-        self.data_rate = 1000000  # 1Mbps
+        current = self.current[mode]
 
-        time_tx_rx = (8 * self.max_payload_size) / self.data_rate
+        # Calculate power consumption for sending in Watts
+        power_watts = (current * self.voltage * time_in_seconds) * (payload_size / 251)
 
-        self.t_pre = 1  # ms
-        self.t_post = 1  # ms
-        self.t_ifs = 0.15  # ms
-        self.t_tx = time_tx_rx * 1000  # ms
-        self.t_rx = time_tx_rx * 1000  # ms
+        # Calculate power consumption in Watt-hours
+        power_wh = power_watts / 3600  # Convert from Watt-seconds to Watt-hours
+        return power_wh
 
-    def send(self, payload):
-        power_consumed = 0
-        time_spent = 0
-        # How many packets to send
-        packet_num = math.ceil(payload / self.max_payload_size)
-        power_consumed += (self.t_pre / 1000 * self.voltage * self.i_pre / 1000) + \
-                          (packet_num * self.t_tx / 1000 * self.voltage * self.i_tx / 1000) + (
-                                      (packet_num - 1) * self.t_ifs / 1000 * self.voltage *
-                                      self.i_ifs / 1000) + (self.t_post / 1000 * self.voltage * self.i_post / 1000)
-        time_spent += (self.t_pre / 1000) + (packet_num * self.t_tx / 1000) + (
-                    (packet_num - 1) * self.t_ifs / 1000) + (self.t_post / 1000)
+    def receive(self, mode, payload_size, time_in_seconds):
+        if mode not in self.current:
+            raise ValueError(f"Invalid BLE mode: {mode}")
 
-        return power_consumed, time_spent
+        current = self.current[mode]
 
-    def receive(self, payload):
-        power_consumed = 0
-        time_spent = 0
-        # How many packets to receive
-        packet_num = math.ceil(payload / self.max_payload_size)
-        power_consumed += (self.t_pre / 1000 * self.voltage * self.i_pre / 1000) + \
-                            (packet_num * self.t_rx / 1000 * self.voltage * self.i_rx / 1000) + (
-                                        (packet_num - 1) * self.t_ifs / 1000 * self.voltage *
-                                        self.i_ifs / 1000) + (self.t_post / 1000 * self.voltage * self.i_post / 1000)
-        time_spent += (self.t_pre / 1000) + (packet_num * self.t_rx / 1000) + (
-                    (packet_num - 1) * self.t_ifs / 1000) + (self.t_post / 1000)
+        # Calculate power consumption for receiving in Watts-seconds
+        power_watts = (current * self.voltage * time_in_seconds) * (payload_size / 251)
 
-        return power_consumed, time_spent
+        # Calculate power consumption in Watt-hours
+        power_wh = power_watts / 3600  # Convert from Watts to Watt-hours
+        return power_wh
+
+
+class ESP32_BLE(BLE):
+    def __init__(self):
+        super().__init__()
+        self.current["Scanning"] = 0.132
+        self.time["Scanning"] = 512 / 1000  # Convert from milliseconds to seconds
+        self.current["Advertising"] = 0.128
+        self.time["Advertising"] = 20.184 / 1000  # Convert from milliseconds to seconds
+        self.current["Connected"] = 0.128
+        self.time["Connected"] = 41.706 / 1000  # Convert from milliseconds to seconds
+        self.voltage = 5.09
+
+
+class Samsung_Galaxy_BLE(BLE):
+    def __init__(self):
+        super().__init__()
+        self.current["Scanning"] = 0.049
+        self.time["Scanning"] = 512 / 1000  # Convert from milliseconds to seconds
+        self.current["Advertising"] = 0.047
+        self.time["Advertising"] = 1000.184 / 1000  # Convert from milliseconds to seconds
+        self.current["Connected"] = 0.057
+        self.time["Connected"] = 9.206 / 1000  # Convert from milliseconds to seconds
+        self.voltage = 4.33

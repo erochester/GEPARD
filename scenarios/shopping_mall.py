@@ -105,16 +105,17 @@ class ShoppingMall:
                             edgecolor='orange', facecolor='orange', lw=1))
         plt.text(1, 1, "IoT Device")
 
-        ax.scatter(*zip(*[x.arr_loc for x in self.list_of_users]), c='g')
-        ax.scatter(*zip(*[x.dep_loc for x in self.list_of_users]), c='r')
+        ax.scatter(*zip(*[x.arr_loc for x in self.list_of_users[:10]]), c='g')
+        ax.scatter(*zip(*[x.dep_loc for x in self.list_of_users[:10]]), c='r')
 
-        for i in range(len([x.arr_loc for x in self.list_of_users])):
-            x_points = ([x.arr_loc for x in self.list_of_users][i][0], [x.dep_loc for x in self.list_of_users][i][0])
-            y_points = ([x.arr_loc for x in self.list_of_users][i][1], [x.dep_loc for x in self.list_of_users][i][1])
+        for i in range(len([x.arr_loc for x in self.list_of_users[:10]])):
+            x_points = ([x.arr_loc for x in self.list_of_users[:10]][i][0], [x.dep_loc for x in self.list_of_users[:10]][i][0])
+            y_points = ([x.arr_loc for x in self.list_of_users[:10]][i][1], [x.dep_loc for x in self.list_of_users[:10]][i][1])
             plt.plot(x_points, y_points, linestyle='dashed')
 
-        for i, txt in enumerate(["ID: " + str(x.id) for x in self.list_of_users]):
-            plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users]))[0][i],
-                               list(zip(*[x.arr_loc for x in self.list_of_users]))[1][i]))
+        for i, txt in enumerate(["ID: " + str(x.id_) for x in self.list_of_users[:10]]):
+            plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users[:10]]))[0][i],
+                               list(zip(*[x.arr_loc for x in self.list_of_users[:10]]))[1][i]))
 
-        plt.show()
+        # plt.show()
+        plt.savefig('./misc/shopping_mall.pdf')

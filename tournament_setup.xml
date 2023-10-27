@@ -1,10 +1,14 @@
 <simulation>
-  <runs>5</runs>
+  <runs>100</runs>
   <networks>
     <network>ble</network>
     <network>lora</network>
     <network>wifi</network>
   </networks>
+  <devices>
+    <device>esp32</device>
+    <device>samsung</device>
+  </devices>
   <scenarios>
     <scenario>university</scenario>
     <scenario>hospital</scenario>

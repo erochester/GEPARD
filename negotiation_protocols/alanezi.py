@@ -94,6 +94,7 @@ class Alanezi:
         # Network power consumption calculations
         # now we iterate through user consent and sum up the power consumption
         for index, u in enumerate(user_consent):
+
             # check how many phases in negotiation
             # if 0 we don't do anything
             # if 1 phase

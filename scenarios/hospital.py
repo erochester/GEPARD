@@ -116,7 +116,7 @@ class Hospital:
             y_points = ([x.arr_loc for x in self.list_of_users][i][1], [x.dep_loc for x in self.list_of_users][i][1])
             plt.plot(x_points, y_points, linestyle='dashed')
 
-        for i, txt in enumerate(["ID: " + str(x.id) for x in self.list_of_users]):
+        for i, txt in enumerate(["ID: " + str(x.id_) for x in self.list_of_users]):
             plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users]))[0][i],
                                list(zip(*[x.arr_loc for x in self.list_of_users]))[1][i]))
 

@@ -13,13 +13,17 @@ from util import result_file_util, write_results
 from process_results import ResultProcessor
 
 
-def main(scenario_name, network_type, algo, filename):
+def main(scenario_name, network_type, device_type_list, algo, filename):
 
     # make scenario lower case for consistency
     scenario_name = scenario_name.lower()
 
     # same for the network type
     network_type = network_type.lower()
+
+    # same for the device type
+    device_type= device_type_list[0].lower()
+    device_type = device_type_list[1].lower()
 
     # same for the algorithm
     algo = algo.lower()
@@ -39,7 +43,7 @@ def main(scenario_name, network_type, algo, filename):
     # scenario.plot_scenario()
 
     # network technology that determines the range of communication, power consumed and allowed data rates
-    network = Network(network_type, logger)
+    network = Network(network_type, device_type, logger)
 
     # create the negotiation protocol object that determines the rules of the encounter
     negotiation_protocol = NegotiationProtocol(algo, network, logger)
@@ -82,7 +86,7 @@ if __name__ == "__main__":
     # Setting the threshold of logger to DEBUG
     logger.setLevel(logging.DEBUG)
 
-    msg = "GEPARD environment. Please provide -a and -n arguments to setup algorithm and network type."
+    msg = "GEPARD environment. Please provide -a, -d and -n arguments to setup algorithm, device and network type."
     # Initialize parser
     parser = argparse.ArgumentParser(description=msg)
 
@@ -92,6 +96,7 @@ if __name__ == "__main__":
     # Adding optional argument
     parser.add_argument("-a", "--algo", help="Algorithm to use, e.g., alanezi")
     parser.add_argument("-n", "--network", help="Network protocol to use, e.g., ble")
+    parser.add_argument('-d', '--devices', nargs='+', help="List of specific devices to use, e.g., esp32")
     parser.add_argument("-s", "--scenario", help="Scenario to use, e.g., shopping_mall")
     parser.add_argument("-t", "--tournament", help="Tournament-styled testing", action='store_true')
 
@@ -107,6 +112,7 @@ if __name__ == "__main__":
         root = tree.getroot()
         runs = int(root.find('runs').text)
         networks = [network.text for network in root.findall('networks/network')]
+        devices = [device.text for device in root.findall('devices/device')]
         scenarios = [scenario.text for scenario in root.findall('scenarios/scenario')]
         algorithms = [algorithm.text for algorithm in root.findall('algorithms/algorithm')]
         # Run the code for each combination of algorithm, network, and scenario
