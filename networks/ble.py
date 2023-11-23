@@ -29,27 +29,3 @@ class BLE:
         # Calculate power consumption in Watt-hours
         power_wh = power_watts / 3600  # Convert from Watts to Watt-hours
         return power_wh
-
-
-class ESP32_BLE(BLE):
-    def __init__(self):
-        super().__init__()
-        self.current["Scanning"] = 0.132
-        self.time["Scanning"] = 512 / 1000  # Convert from milliseconds to seconds
-        self.current["Advertising"] = 0.128
-        self.time["Advertising"] = 20.184 / 1000  # Convert from milliseconds to seconds
-        self.current["Connected"] = 0.128
-        self.time["Connected"] = 41.706 / 1000  # Convert from milliseconds to seconds
-        self.voltage = 5.09
-
-
-class Samsung_Galaxy_BLE(BLE):
-    def __init__(self):
-        super().__init__()
-        self.current["Scanning"] = 0.049
-        self.time["Scanning"] = 512 / 1000  # Convert from milliseconds to seconds
-        self.current["Advertising"] = 0.047
-        self.time["Advertising"] = 1000.184 / 1000  # Convert from milliseconds to seconds
-        self.current["Connected"] = 0.057
-        self.time["Connected"] = 9.206 / 1000  # Convert from milliseconds to seconds
-        self.voltage = 4.33

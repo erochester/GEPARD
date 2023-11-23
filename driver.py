@@ -1,10 +1,9 @@
 import numpy as np
-
+from tqdm import tqdm
 
 class Driver:
-    def __init__(self, scenario, network, negotiation_protocol, logger):
+    def __init__(self, scenario, negotiation_protocol, logger):
         self.scenario = scenario
-        self.network = network
         self.negotiation_protocol = negotiation_protocol
         self.logger = logger
 
@@ -29,6 +28,10 @@ class Driver:
 
         # self.scenario.plot_scenario()
 
+        # Create progress bar
+        end_time = self.scenario.list_of_users[len(self.scenario.list_of_users) - 1].dep_time
+        pbar = tqdm(total=end_time, colour='green')
+
         # Run the simulation until we run out of the users/time
         while curr_t <= self.scenario.list_of_users[len(self.scenario.list_of_users) - 1].dep_time:
 
@@ -42,6 +45,12 @@ class Driver:
                     curr_users_list.remove(u)
 
             self.logger.debug("Current after removal users: " + str(len(curr_users_list)))
+
+            for u in curr_users_list:
+                if u.consent:
+                    curr_users_list.remove(u)
+
+            self.logger.debug("Current after removal of consented users: " + str(len(curr_users_list)))
 
             # Update current user location
             for u in curr_users_list:
@@ -85,12 +94,20 @@ class Driver:
             # if this is the last arriving user
             if uur >= len(self.scenario.list_of_users):
                 min_dep_time = min(curr_users_list, key=lambda x: x.dep_time).dep_time
+                # Update progress bar
+                pbar.update(min_dep_time - curr_t)
                 curr_t = min_dep_time
             # otherwise we continue to update arriving, estimating their privacy coefficients and
             # adding to the current user list
             else:
+                # Update progress bar
+                pbar.update(self.scenario.list_of_users[uur].arr_time - curr_t)
                 curr_t = self.scenario.list_of_users[uur].arr_time
                 curr_users_list.append(self.scenario.list_of_users[uur])
+
+        # Final update of the progress bar
+        pbar.update(curr_t)
+        pbar.close()
 
         return total_consented, total_user_power_consumption, total_owner_power_consumption, \
             total_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device

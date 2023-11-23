@@ -15,15 +15,15 @@ class ResultProcessor:
         networks = {}
         scenarios = {}
 
-        with open(filename, "r") as csvfile:
+        with (open(filename, "r") as csvfile):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 # Extract the fields from the row
                 algorithm = row["Algorithm"]
                 network = row["Network"]
                 scenario = row["Scenario"]
-                user_power = float(row["Total User Power Consumption (kWh)"])
-                owner_power = float(row["Total Owner Power Consumption (kWh)"])
+                user_current = float(row["Total User Current Consumption (A)"])
+                owner_current = float(row["Total Owner Current Consumption (A)"])
                 user_time = float(row["Total User Time Spent (s)"])
                 owner_time = float(row["Total Owner Time Spent (s)"])
                 consent = float(row["Consent Percentage (%)"])
@@ -45,8 +45,8 @@ class ResultProcessor:
                     algorithms[algorithm][network][scenario] = []
 
                 algorithms[algorithm][network][scenario].append({
-                    "user_power": user_power,
-                    "owner_power": owner_power,
+                    "user_current": user_current,
+                    "owner_current": owner_current,
                     "user_time": user_time,
                     "owner_time": owner_time,
                     "consent": consent,
@@ -58,9 +58,9 @@ class ResultProcessor:
         with open('./results/statistics.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(
-                ['Algorithm', 'Network', 'Scenario', 'Avg User Power', 'Min User Power', 'Max User Power',
-                 'Std User Power',
-                 'Avg Owner Power', 'Min Owner Power', 'Max Owner Power', 'Std Owner Power',
+                ['Algorithm', 'Network', 'Scenario', 'Avg User Power', 'Min User Current', 'Max User Current',
+                 'Std User Current',
+                 'Avg Owner Current', 'Min Owner Current', 'Max Owner Current', 'Std Owner Current',
                  'Avg User Time', 'Min User Time', 'Max User Time', 'Std User Time',
                  'Avg Owner Time', 'Min Owner Time', 'Max Owner Time', 'Std Owner Time',
                  'Avg Consent', 'Min Consent', 'Max Consent', 'Std Consent',
@@ -94,8 +94,8 @@ class ResultProcessor:
             for algorithm, algorithm_data in algorithms.items():
                 for network, network_data in algorithm_data.items():
                     for scenario, scenario_data in network_data.items():
-                        user_powers = [data["user_power"] for data in scenario_data]
-                        owner_powers = [data["owner_power"] for data in scenario_data]
+                        user_current = [data["user_current"] for data in scenario_data]
+                        owner_current = [data["owner_current"] for data in scenario_data]
                         user_time = [data["user_time"] for data in scenario_data]
                         owner_time = [data["owner_time"] for data in scenario_data]
                         consents = [data["consent"] for data in scenario_data]
@@ -104,8 +104,8 @@ class ResultProcessor:
                         owner_utility = [data["owner utility"] for data in scenario_data]
 
                         # Calculate the statistics
-                        avg_user_power = round(np.mean(user_powers), 2)
-                        avg_owner_power = round(np.mean(owner_powers), 2)
+                        avg_user_current = round(np.mean(user_current), 2)
+                        avg_owner_current = round(np.mean(owner_current), 2)
                         avg_user_time = round(np.mean(user_time), 2)
                         avg_owner_time = round(np.mean(owner_time), 2)
                         avg_consent = round(np.mean(consents), 2)
@@ -113,8 +113,8 @@ class ResultProcessor:
                         avg_user_utility = round(np.mean(user_utility), 2)
                         avg_owner_utility = round(np.mean(owner_utility), 2)
 
-                        if min(avg_user_power, avg_owner_power) < min_power:
-                            min_power = min(avg_user_power, avg_owner_power)
+                        if min(avg_user_current, avg_owner_current) < min_power:
+                            min_power = min(avg_user_current, avg_owner_current)
                             best_algorithm = algorithm
                             best_network = network
                             best_scenario = scenario
@@ -137,8 +137,8 @@ class ResultProcessor:
                             best_network_utility = network
                             best_scenario_utility = scenario
 
-                        min_user_power = round(np.min(user_powers), 2)
-                        min_owner_power = round(np.min(owner_powers), 2)
+                        min_user_current = round(np.min(user_current), 2)
+                        min_owner_current = round(np.min(owner_current), 2)
                         min_user_time = round(np.min(user_time), 2)
                         min_owner_time = round(np.min(owner_time), 2)
                         min_consent = round(np.min(consents), 2)
@@ -146,8 +146,8 @@ class ResultProcessor:
                         min_user_utility = round(np.min(user_utility), 2)
                         min_owner_utility = round(np.min(owner_utility), 2)
 
-                        max_user_power = round(np.max(user_powers), 2)
-                        max_owner_power = round(np.max(owner_powers), 2)
+                        max_user_current = round(np.max(user_current), 2)
+                        max_owner_current = round(np.max(owner_current), 2)
                         max_user_time = round(np.max(user_time), 2)
                         max_owner_time = round(np.max(owner_time), 2)
                         max_consent = round(np.max(consents), 2)
@@ -155,8 +155,8 @@ class ResultProcessor:
                         max_user_utility = round(np.max(user_utility), 2)
                         max_owner_utility = round(np.max(owner_utility), 2)
 
-                        std_user_power = round(np.std(user_powers), 2)
-                        std_owner_power = round(np.std(owner_powers), 2)
+                        std_user_current = round(np.std(user_current), 2)
+                        std_owner_current = round(np.std(owner_current), 2)
                         std_user_time = round(np.std(user_time), 2)
                         std_owner_time = round(np.std(owner_time), 2)
                         std_consent = round(np.std(consents), 2)
@@ -166,9 +166,9 @@ class ResultProcessor:
 
                         # Write the data to the file
                         writer.writerow(
-                            [algorithm, network, scenario, avg_user_power, min_user_power, max_user_power,
-                             std_user_power,
-                             avg_owner_power, min_owner_power, max_owner_power, std_owner_power, avg_user_time,
+                            [algorithm, network, scenario, avg_user_current, min_user_current, max_user_current,
+                             std_user_current,
+                             avg_owner_current, min_owner_current, max_owner_current, std_owner_current, avg_user_time,
                              min_user_time, max_user_time, std_user_time, avg_owner_time, min_owner_time,
                              max_owner_time,
                              std_owner_time,
@@ -180,11 +180,11 @@ class ResultProcessor:
             # Open the file for writing
             with open('./results/top_performers.txt', 'w') as f:
                 # Write the combination with the least power consumption to the file
-                f.write("The combination with the least power consumption is:\n")
+                f.write("The combination with the least current consumption is:\n")
                 f.write(f"Algorithm: {best_algorithm}\n")
                 f.write(f"Network: {best_network}\n")
                 f.write(f"Scenario: {best_scenario}\n")
-                f.write(f"Power Consumption: {min_power:.2f}\n")
+                f.write(f"Current Consumption: {min_power:.2f}\n")
                 f.write("\n")
 
                 # Write the combination with the highest user consent to the file
@@ -216,7 +216,7 @@ class ResultProcessor:
 
 
     def plot_results(self):
-
+        # FIXME doesnt work for now
         # read data from CSV file
         df = pd.read_csv('./results/results.csv')
 

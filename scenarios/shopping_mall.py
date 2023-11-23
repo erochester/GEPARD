@@ -18,7 +18,9 @@ class ShoppingMall:
     def generate_scenario(self):
         # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
         # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
-        last_arrival = 10 * 60
+        # FIXME: de comment the hours. For now only 10 users are generated on average.
+        # last_arrival = 10 * 60
+        last_arrival = 5
 
         # Arrival lambda is assumed from shopping mall data analysis papers
         # for now it is set to 2 (meaning 2 users arrive per minute)
@@ -95,6 +97,7 @@ class ShoppingMall:
                     arrival_time + (distance / user.speed)
             )
             user.update_departure_time(departure_time)
+
 
     def plot_scenario(self):
         fig, ax = plt.subplots()
