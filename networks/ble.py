@@ -3,6 +3,7 @@ class BLE:
         self.current = {}
         self.time = {}
         self.voltage = {}
+        self.comm_distance = 50 # meters effective communication distance for BLE
 
     def send(self, mode, payload_size, time_in_seconds):
         if mode not in self.current:

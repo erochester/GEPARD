@@ -14,6 +14,8 @@ class Hospital:
     def __init__(self, list_of_users, iot_device):
         self.list_of_users = list_of_users
         self.iot_device = iot_device
+        # TODO: The hospital radius is assumed to be the smallest, i.e., 40 meters
+        self.radius = 40
 
     def generate_scenario(self):
         # The hospital works 24/7
@@ -28,9 +30,6 @@ class Hospital:
         # Initial user id
         user_id = 0
 
-        # The hospital IoT device has operational range of 40 meters
-        radius = 40
-
         # New arrivals come until midnight as we simulate 1 full day
         while arrival_time <= last_arrival:
             # Generate the speed
@@ -39,13 +38,13 @@ class Hospital:
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
-            x_a = np.cos(arrival_angle) * radius
-            y_a = np.sin(arrival_angle) * radius
+            x_a = np.cos(arrival_angle) * self.radius
+            y_a = np.sin(arrival_angle) * self.radius
 
             # Generate departure angle and calculate coordinates on the sensing disk
             departure_angle = np.random.rand() * np.pi * 2
-            x_d = np.cos(departure_angle) * radius
-            y_d = np.sin(departure_angle) * radius
+            x_d = np.cos(departure_angle) * self.radius
+            y_d = np.sin(departure_angle) * self.radius
 
             # Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)
             privacy_coeff = random.choice([1] * 25 + [2] * 55 + [3] * 20)

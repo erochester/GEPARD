@@ -18,7 +18,7 @@ BLE_E_MOD_SCAN_ITXRX = 16.670e-3    # Current magnitude [A] of Tx2Rx phase
 BLE_E_MOD_SCAN_IRXS = 26.426e-3     # Current magnitude [A] of "Rx of scan response" phase
 BLE_E_MOD_SCAN_IRXRX = 9.633e-3     # Current magnitude [A] of Rx2Rx phase
 BLE_E_MOD_SCAN_IPOST = 8.012e-3    # Current magnitude [A] of postprocessing phase
-BLE_E_MOD_SCAN_ICHCH = 8.550e-3    # Current magnitude [a] for channel changing in constant scanning
+BLE_E_MOD_SCAN_ICHCH = 8.550e-3    # Current magnitude [A] for channel changing in constant scanning
 
 BLE_E_MOD_SCAN_QCTX = -0.2264e-6    # Correction offset Tx [As]
 BLE_E_MOD_SCAN_QCRX = -0.1350e-6    # Correction offset Rx [As]

@@ -22,8 +22,8 @@ class ResultProcessor:
                 algorithm = row["Algorithm"]
                 network = row["Network"]
                 scenario = row["Scenario"]
-                user_current = float(row["Total User Current Consumption (A)"])
-                owner_current = float(row["Total Owner Current Consumption (A)"])
+                user_current = float(row["Total User Current Consumption (W)"])
+                owner_current = float(row["Total Owner Current Consumption (W)"])
                 user_time = float(row["Total User Time Spent (s)"])
                 owner_time = float(row["Total Owner Time Spent (s)"])
                 consent = float(row["Consent Percentage (%)"])

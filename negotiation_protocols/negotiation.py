@@ -1,6 +1,7 @@
 from negotiation_protocols.cunche import Cunche
 from negotiation_protocols.alanezi import Alanezi
 from negotiation_protocols.concession import Concession
+import sys
 
 
 class NegotiationProtocol:
@@ -19,4 +20,7 @@ class NegotiationProtocol:
         elif self.algo == "concession":
             concession = Concession(self.network)
             return concession.run(list_of_users, iot_device)
+        else:
+            print("Negotiation protocol not supported")
+            sys.exit(1)
 

@@ -1,5 +1,8 @@
+from concurrent.futures import ProcessPoolExecutor
+
 from util import check_distance, calc_utility, calc_time_remaining
 import random
+import sys
 
 
 class Cunche:
@@ -22,7 +25,7 @@ class Cunche:
 
         # remove users that are > x meters away from IoT device
         applicable_users = []
-        distance = 40
+        distance = self.network.network_impl.comm_distance
         for u in curr_users_list:
             if check_distance(u.curr_loc, distance):
                 applicable_users.append(u)
@@ -41,38 +44,234 @@ class Cunche:
                     u.update_consent(True)
                     user_consent.append(u)
 
-        # now we iterate through user consent and sum up the power consumption
-        for u in user_consent:
-            # if 0 we don't do anything
-            # if 1 phase
-            if u.consent:
-                # the owner sends the PP to the user
-                # it will take owner_pp_packets transmissions on the IoT user side
-                power_consumed, time_spent = self.network.send(owner_pp_size)
-                total_owner_power_consumption += power_consumed
-                total_owner_time_spent += time_spent
+        # Initialize total variables outside the loop
+        total_user_current_consumption = 0
+        total_user_time_spent = 0
+        total_owner_current_consumption = 0
+        total_owner_time_spent = 0
 
-                # the user receives the PP
-                power_consumed, time_spent = self.network.receive(owner_pp_size)
-                total_user_power_consumption += power_consumed
-                total_user_time_spent += time_spent
+        # Create a list of dictionaries containing arguments for the function
+        user_data_list = [{"user_data": user_data, "user_pp_size": user_pp_size, "owner_pp_size": owner_pp_size,
+                           "user_consent": user_consent,
+                           "applicable_users": applicable_users,
+                           "iot_device": iot_device}
+                          for user_data in enumerate(user_consent)]
 
-                # the user consents
-                power_consumed, time_spent = self.network.send(user_pp_size)
-                total_user_power_consumption += power_consumed
-                total_user_time_spent += time_spent
+        # Use multiprocessing to parallelize the for loop
+        with ProcessPoolExecutor() as executor:
+            # Map the function over the user data list
+            results = list(executor.map(self.consumption_for_user, user_data_list))
+            executor.shutdown(wait=True, cancel_futures=False)
 
-                # the owner receives consent
-                power_consumed, time_spent = self.network.receive(user_pp_size)
-                total_owner_power_consumption += power_consumed
-                total_owner_time_spent += time_spent
+        index = 0
 
-                # update utility
-                user_utility = calc_utility(calc_time_remaining(u), total_user_power_consumption, u.weights)
-                u.update_utility(u.utility + user_utility)
+        # Sum up the results after the processes are done
+        for result in results:
+            total_user_current_consumption += result[0]
+            total_user_time_spent += result[1]
+            total_owner_current_consumption += result[2]
+            total_owner_time_spent += result[3]
 
-                owner_utility = calc_utility(calc_time_remaining(u), total_owner_power_consumption, iot_device.weights)
-                iot_device.update_utility(iot_device.utility + owner_utility)
+            # Update utility
+            applicable_users[index].update_utility(result[4])
+            iot_device.update_utility(iot_device.utility + result[5])
+            index += 1
 
-        return user_consent, applicable_users, total_user_power_consumption, total_owner_power_consumption, \
+        # now we can return the number of contacted users, how many consented, after how much time and
+        # how much energy was consumed
+        return user_consent, applicable_users, total_user_current_consumption, total_owner_current_consumption, \
             total_user_time_spent, total_owner_time_spent
+
+    # Define a function to calculate power consumption and duration with a single user
+    def consumption_for_user(self, args):
+        """
+        Used to parallelize the consumption calculations since BLE library takes a while to compute.
+        :param self:
+        :param args:
+        :return:
+        """
+
+        (curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent,
+         user_utility, owner_utility) = 0, 0, 0, 0, 0, 0
+
+        index, u = args["user_data"]
+        user_pp_size = args["user_pp_size"]
+        owner_pp_size = args["owner_pp_size"]
+        user_consent = args["user_consent"]
+        applicable_users = args["applicable_users"]
+        iot_device = args["iot_device"]
+
+        # shouldn't occur, since we remove all consented users beforehand
+        if not user_consent[index].consent:
+            return 0, 0, 0, 0, 0, 0
+
+        if self.network.network_type == "ble":
+            # Calculate the power consumption and duration for BLE
+            (curr_user_power_consumption, curr_owner_power_consumption, curr_user_time_spent,
+             curr_owner_time_spent) = self.ble_negotiation(user_pp_size, owner_pp_size, u)
+        elif self.network.network_type == "zigbee":
+            # Calculate the power consumption and duration for zigbee
+            (curr_user_power_consumption, curr_owner_power_consumption, curr_user_time_spent,
+             curr_owner_time_spent) = self.zigbee_negotiation(user_pp_size, owner_pp_size, u)
+        elif self.network.network_type == "lora":
+            # Calculate the power consumption and duration for zigbee
+            (curr_user_power_consumption, curr_owner_power_consumption, curr_user_time_spent,
+             curr_owner_time_spent) = self.lora_negotiation(user_pp_size, owner_pp_size, u)
+        else:
+            # raise error and exit
+            print("Invalid network type in concession.py.")
+            sys.exit(1)
+
+        # Calculate user and owner utility
+        # update utility
+        user_utility = calc_utility(calc_time_remaining(u), curr_user_power_consumption, u.weights)
+        u.update_utility(u.utility + user_utility)
+
+        owner_utility = calc_utility(calc_time_remaining(u), curr_owner_power_consumption, iot_device.weights)
+        iot_device.update_utility(iot_device.utility + owner_utility)
+
+        # Return the local results
+        return curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent, user_utility, owner_utility
+
+    def ble_negotiation(self, user_pp_size, owner_pp_size, u):
+        total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
+            = 0, 0, 0, 0
+
+        # if 0 phases (won't consent) we don't do anything
+        # if 1 phase
+        if u.consent:
+            # get the duration of all constant parts of a connection event. (Preprocessing, Postprocessing,...)
+            dc = self.network.network_impl.connected.ble_e_model_c_get_duration_constant_parts()
+
+            # now do the same with the charge of these phases
+            charge_c = self.network.network_impl.connected.ble_e_model_c_get_charge_constant_parts()
+
+            total_user_time_spent += dc
+            total_owner_time_spent += dc
+            total_user_power_consumption += charge_c
+            total_owner_power_consumption += charge_c
+
+            # Calculate the latency and energy consumption of device discovery. The values are taken from:
+            # https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
+            result = (self.network.network_impl.discovery.ble_model_discovery_get_result
+                      (100, 0.9999, 0.25, 5, 2, 0.01, 1000))
+
+            total_user_time_spent += result.discoveryLatency
+            total_owner_time_spent += result.discoveryLatency
+            total_user_power_consumption += result.chargeAdv
+            total_owner_power_consumption += result.chargeScan
+
+            # at the end of discovery the device go through connection establishment
+            # as per documentation there is no duration, since it is accounted in the discovery
+            # For user we set periodic scan type and to be the master
+            total_user_power_consumption += (
+                self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
+                (1, 0, 1,
+                 0,
+                 0.1))
+            # owner is the slave
+            total_owner_power_consumption += (
+                self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
+                (1, 0, 0,
+                 0,
+                 0.1))
+
+            # the owner (slave) sends PP to the user (master)
+            time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,
+                                                                                                  [user_pp_size],
+                                                                                                  [owner_pp_size], 3)
+
+            total_owner_time_spent += time_spent
+
+            # user sends the consent to the owner
+            time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                  [owner_pp_size],
+                                                                                                  [user_pp_size], 3)
+
+            total_user_time_spent += time_spent
+
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
+                                                                                                 [user_pp_size],
+                                                                                                 [owner_pp_size], 3)
+            total_owner_power_consumption += power_spent
+
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                                 [owner_pp_size],
+                                                                                                 [user_pp_size], 3)
+            total_user_power_consumption += power_spent
+
+        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
+
+    def zigbee_negotiation(self, user_pp_size, owner_pp_size, u):
+        total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
+            = 0, 0, 0, 0
+
+        # if 0 phases (won't consent) we don't do anything
+        # if 1 phase
+        if u.consent:
+            # get the duration and power consumption of startup for the device (W, s)
+            charge_c, dc = self.network.network_impl.startup()
+
+            total_user_time_spent += dc
+            total_owner_time_spent += dc
+            total_user_power_consumption += charge_c
+            total_owner_power_consumption += charge_c
+
+            # Association duration and power consumption (W, s)
+
+            charge_a, da = self.network.network_impl.association()
+
+            total_user_time_spent += da
+            total_owner_time_spent += da
+            total_user_power_consumption += charge_a
+            total_owner_power_consumption += charge_a
+
+            # at the end of association the Coordinator sends its PP to the mote
+
+            charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            total_user_time_spent += d_rx
+            total_owner_time_spent += d_tx
+            total_user_power_consumption += charge_rx
+            total_owner_power_consumption += charge_tx
+
+            # the mote sends its consent to the Coordinator
+
+            charge_tx, d_tx = self.network.network_impl.send(user_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += charge_tx
+            total_owner_power_consumption += charge_rx
+
+        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
+
+    def lora_negotiation(self, user_pp_size, owner_pp_size, u):
+        total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
+            = 0, 0, 0, 0
+
+        # if 0 phases (won't consent) we don't do anything
+        # if 1 phase
+        if u.consent:
+            # IoT device (owner) sends PP to the LoRa node (user)
+
+            power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            total_user_time_spent += d_rx
+            total_owner_time_spent += d_tx
+            total_user_power_consumption += power_rx
+            total_owner_power_consumption += power_tx
+
+            # the LoRa node replies with consent (user PP)
+            power_tx, d_tx = self.network.network_impl.send(user_pp_size)
+            power_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += power_tx
+            total_owner_power_consumption += power_rx
+
+        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent

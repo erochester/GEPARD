@@ -11,3 +11,4 @@ class BLEEMod:
         self.connected = BLEConnected()
         self.connection_establishment = BLEConnectionEstablishment()
         self.connection_establishment_params = BLEConnectionEstablishmentParams()
+        self.comm_distance = 50  # meters effective communication distance for BLE

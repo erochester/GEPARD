@@ -2,6 +2,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 from util import check_distance, calc_utility, calc_time_remaining
 import random
+import sys
 
 
 class Alanezi:
@@ -39,7 +40,8 @@ class Alanezi:
         # 40 meters for BLE
 
         applicable_users = []
-        distance = 40
+        # TODO: make distance network dependent
+        distance = self.network.network_impl.comm_distance
         for u in curr_users_list:
             if check_distance(u.curr_loc, distance):
                 applicable_users.append(u)
@@ -93,6 +95,8 @@ class Alanezi:
                 # shouldn't occur, since we remove all consented users beforehand
                 user_consent.append(0)
                 user_consent_obj.append(u)
+
+        # FIXME: user_consent_obj is the same as applicable_users?
 
         # Initialize total variables outside the loop
         total_user_current_consumption = 0
@@ -162,10 +166,17 @@ class Alanezi:
             # Calculate the power consumption and duration for BLE
             (curr_user_power_consumption, curr_owner_power_consumption, curr_user_time_spent,
              curr_owner_time_spent) = self.ble_negotiation(user_pp_size, owner_pp_size, u)
-        elif self.network.network_type == "wifi":
-            # Calculate the power consumption and duration for WiFi
+        elif self.network.network_type == "zigbee":
+            # Calculate the power consumption and duration for zigbee
             (curr_user_power_consumption, curr_owner_power_consumption, curr_user_time_spent,
-             curr_owner_time_spent) = self.wifi_negotiation(user_pp_size, owner_pp_size, u)
+             curr_owner_time_spent) = self.zigbee_negotiation(user_pp_size, owner_pp_size, u)
+        elif self.network.network_type == "lora":
+            (curr_user_power_consumption, curr_owner_power_consumption, curr_user_time_spent,
+             curr_owner_time_spent) = self.lora_negotiation(user_pp_size, owner_pp_size, u)
+        else:
+            # raise error and exit
+            print("Invalid network type in concession.py.")
+            sys.exit(1)
 
         # Calculate user and owner utility
         user_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_user_power_consumption,
@@ -199,17 +210,24 @@ class Alanezi:
         total_user_power_consumption += charge_c
         total_owner_power_consumption += charge_c
 
-        # Calculate the latency and energy consumption of device discovery
-        # For Android we assume ADVERTISE_MODE_BALANCED – Advertising interval: 250 ms
-        # SCAN_MODE_BALANCED_WINDOW_MS = 1024;
-        # SCAN_MODE_BALANCED_INTERVAL_MS = 4096;
+        # print duration and charge of constant parts
+        # print("Duration of constant parts: ", dc)
+        # print("Charge of constant parts: ", charge_c)
+
+        # Calculate the latency and energy consumption of device discovery. The values are taken from:
+        # https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
         result = (self.network.network_impl.discovery.ble_model_discovery_get_result_alanezi
-                  (100, 0.99, 0.25, 4.096, 1.024, 0.01, 1000, user_pp_size))
+                  (100, 0.9999, 0.25, 5, 2, 0.01, 1000, user_pp_size))
 
         total_user_time_spent += result.discoveryLatency
         total_owner_time_spent += result.discoveryLatency
         total_user_power_consumption += result.chargeAdv
         total_owner_power_consumption += result.chargeScan
+
+        # print duration and charge of discovery
+        # print("Duration of discovery: ", result.discoveryLatency)
+        # print("Charge of discovery (user): ", result.chargeAdv)
+        # print("Charge of discovery (owner): ", result.chargeScan)
 
         # at the end of discovery the device go through connection establishment
         # as per documentation there is no duration, since it is accounted in the discovery
@@ -224,6 +242,10 @@ class Alanezi:
             (1, 0, 0,
              0,
              0.1))
+
+        # print charge of connection establishment
+        # print("Charge of connection establishment (user): ", total_user_power_consumption)
+        # print("Charge of connection establishment (owner): ", total_owner_power_consumption)
 
         # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
 
@@ -255,37 +277,56 @@ class Alanezi:
 
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 
-    def wifi_negotiation(self, user_pp_size, owner_pp_size, u):
+    def zigbee_negotiation(self, user_pp_size, owner_pp_size, u):
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
-        # We adaptAlanezi's proposed negotiation to WiFi as follows the following flow:
-        # WiFi AP sends data request information (user is advertising and IoT owner is scanning, user PP is sent)
+        # Alanezi's proposed negotiation follows the following flow:
+        # BLE broadcast with data request information (user is advertising and IoT owner is scanning, user PP is sent)
         # -> connection establishment -> IoT owner accepts/negotiation -> …done?
-        # We assume WiFi Direct
 
-        # Consequently, no matter the number of phases the advertising, scanning and connection establishment with
-        # at least 1 connection packet always occurs
+        # We adjust the negotation flow to fit Zigbee as follows:
+        # ZigBee Mote (user) starts up ->
+        # -> Mote associates with the Coordinator (IoT device) -> Mote sends data request information to Coordinator
+        # -> Coordinator accepts/negotiation -> ...done?
 
-        # Connection establishment comes first
-        # Smartphone is the group owner
-        power_consumed, duration = self.network.network_impl.wifi_consumption_model_ce(1)
-        total_user_power_consumption += power_consumed
-        total_user_time_spent += duration
-        # IoT device is the User Equipment (UE)
-        power_consumed, duration = self.network.network_impl.wifi_consumption_model_ce(0)
-        total_owner_power_consumption += power_consumed
-        total_owner_time_spent += duration
+        # get the duration and power consumption of startup for the device (Ws, s)
+        charge_c, dc = self.network.network_impl.startup()
 
-        # Now we have to send the data
-        # Phase-1
-        power_consumed, duration = self.network.network_impl.wifi_consumption_model_tx(0, user_pp_size)
-        total_user_power_consumption += power_consumed
-        total_user_time_spent += duration
+        total_user_time_spent += dc
+        total_owner_time_spent += dc
+        total_user_power_consumption += charge_c
+        total_owner_power_consumption += charge_c
 
-        power_consumed, duration = self.network.network_impl.wifi_consumption_model_rx(1, user_pp_size)
-        total_owner_power_consumption += power_consumed
-        total_owner_time_spent += duration
+        # Association duration and power consumption (Ws, s)
+
+        charge_a, da = self.network.network_impl.association()
+
+        total_user_time_spent += da
+        total_owner_time_spent += da
+        total_user_power_consumption += charge_a
+        total_owner_power_consumption += charge_a
+
+        # at the end of association the mote sends its request to the coordinator
+        charge_tx, d_tx = self.network.network_impl.send(user_pp_size)
+        charge_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+
+        total_user_time_spent += d_tx
+        total_owner_time_spent += d_rx
+        total_user_power_consumption += charge_tx
+        total_owner_power_consumption += charge_rx
+
+        # the owner also needs to send an ACK to the mote
+        # as per: https://github.com/Koenkk/zigbee2mqtt/issues/1455
+        # ACK size is 65 bytes
+
+        charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+        charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+        total_user_time_spent += d_rx
+        total_owner_time_spent += d_tx
+        total_user_power_consumption += charge_rx
+        total_owner_power_consumption += charge_tx
 
         # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
 
@@ -295,17 +336,81 @@ class Alanezi:
             # however now the owner responds with an alternative proposal and waits for the user to reply
             # so two more steps are added
 
-            # Note that we assume that there is no delay between connection establishment and sending first packet
+            # Note that we assume that there is no delay between association and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it
             # FIXME: for now we assume that the user reply is same size as its initial PP size
-            # we call from master point of view because it has Tx first and then Rx which better simulates the behaviour
+            charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
-            power_consumed, duration = self.network.network_impl.wifi_consumption_model_tx(0, owner_pp_size)
-            total_owner_power_consumption += power_consumed
-            total_owner_time_spent += duration
+            total_user_time_spent += d_rx
+            total_owner_time_spent += d_tx
+            total_user_power_consumption += charge_rx
+            total_owner_power_consumption += charge_tx
 
-            power_consumed, duration = self.network.network_impl.wifi_consumption_model_rx(0, owner_pp_size)
-            total_user_power_consumption += power_consumed
-            total_user_time_spent += duration
+            # Send ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += charge_tx
+            total_owner_power_consumption += charge_rx
+
+        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
+
+    def lora_negotiation(self, user_pp_size, owner_pp_size, u):
+        total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
+            = 0, 0, 0, 0
+
+        # Alanezi's proposed negotiation follows the following flow:
+        # BLE broadcast with data request information (user is advertising and IoT owner is scanning, user PP is sent)
+        # -> connection establishment -> IoT owner accepts/negotiation -> …done?
+
+        # We adjust the negotation flow to fit Lora as follows:
+        # Class A LoRa node sends data request information to the Gateway
+        # -> Gateway accepts/negotiation -> ...done?
+
+        # LoRa device (user) sends its request to the Gateway (owner)
+        power_tx, d_tx = self.network.network_impl.send(user_pp_size)
+
+        # Gateway reception
+        power_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+
+        total_user_time_spent += d_tx
+        total_owner_time_spent += d_rx
+        total_user_power_consumption += power_tx
+        total_owner_power_consumption += power_rx
+
+        # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
+
+        # if negotiation is 2 phases
+        if u == 2:
+            # TODO: For acceptance user replies with its original PP for now
+            # in 2 phase negotiation we start exactly the same way as in 1 phase
+            # however now the owner responds with an alternative proposal and waits for the user to reply
+            # so two more steps are added
+
+            # Gateway (owner) sends alternative offer
+            power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+
+            # LoRa node reception
+            power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += power_tx
+            total_owner_power_consumption += power_rx
+
+            # Acceptance
+            # LoRa device (user) sends its request to the Gateway (owner)
+            power_tx, d_tx = self.network.network_impl.send(user_pp_size)
+
+            # Gateway reception
+            power_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += power_tx
+            total_owner_power_consumption += power_rx
 
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent

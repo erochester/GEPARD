@@ -35,15 +35,15 @@ class BLEConnected():
         Returns the charge of the communication sequence phases. Each sequence may have a unique number of bytes sent
         and received.
         These are: Communication preamble, Window-Widening (slave), Rx, Rx2Tx,Tx,Tx2Rx
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: charge consumed by the sequences [C]
         """
         cnt = 0

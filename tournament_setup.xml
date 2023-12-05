@@ -1,22 +1,18 @@
 <simulation>
-  <runs>100</runs>
+  <runs>1</runs>
   <networks>
-    <network>ble</network>
+<!--    <network>ble</network>-->
+<!--    <network>zigbee</network>-->
     <network>lora</network>
-    <network>wifi</network>
   </networks>
-  <devices>
-    <device>esp32</device>
-    <device>samsung</device>
-  </devices>
   <scenarios>
     <scenario>university</scenario>
-    <scenario>hospital</scenario>
-    <scenario>shoppingmall</scenario>
+<!--    <scenario>hospital</scenario>-->
+<!--    <scenario>shoppingmall</scenario>-->
   </scenarios>
   <algorithms>
-    <algorithm>alanezi</algorithm>
-    <algorithm>cunche</algorithm>
+<!--    <algorithm>alanezi</algorithm>-->
+<!--    <algorithm>cunche</algorithm>-->
     <algorithm>concession</algorithm>
   </algorithms>
 </simulation>

@@ -1,5 +1,7 @@
 from networks.bleemod_python.bleemod_python import BLEEMod
-from networks.wifi import WiFi
+from networks.zigbee import ZigBee
+from networks.lora import LoRa
+import sys
 
 
 class Network:
@@ -9,6 +11,11 @@ class Network:
         # TODO: for now there is no LoRa
         if self.network_type == "ble":
             self.network_impl = BLEEMod()
-        elif self.network_type == "wifi":
-            self.network_impl = WiFi()
+        elif self.network_type == "zigbee":
+            self.network_impl = ZigBee()
+        elif self.network_type == "lora":
+            self.network_impl = LoRa()
+        else:
+            print("Network type not supported")
+            sys.exit(1)
 

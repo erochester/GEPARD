@@ -2,7 +2,6 @@ import argparse
 import logging
 import random
 from xml.etree.ElementTree import parse
-from itertools import permutations
 
 import numpy as np
 
@@ -10,9 +9,9 @@ from driver import Driver
 from iot_device import IoTDevice
 from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
+from process_results import ResultProcessor
 from scenarios.scenario import Scenario
 from util import result_file_util, write_results
-from process_results import ResultProcessor
 
 
 def main(scenario_name, network_type, algo, filename):
@@ -53,10 +52,9 @@ def main(scenario_name, network_type, algo, filename):
         = driver.run()  # drives the simulation environment
 
     # For BLE devices we need to convert from A to W
-    # For Wifi the results are already in W
     if network_type == "ble":
-        voltage = 3.3  # TODO: Assume 3.3V for BLE devices
-        # convert from A to W
+        voltage = 3.3  # TODO: Assume 3.3 V for BLE devices.
+        # convert from As to Ws
         total_user_power_consumption = total_user_power_consumption * voltage
         total_owner_power_consumption = total_owner_power_consumption * voltage
 
@@ -97,77 +95,59 @@ if __name__ == "__main__":
     # Setting the threshold of logger to DEBUG
     logger.setLevel(logging.DEBUG)
 
-    # msg = "GEPARD environment. Please provide -a, -d and -n arguments to setup algorithm, device and network type."
-    # # Initialize parser
-    # parser = argparse.ArgumentParser(description=msg)
-    #
-    # filename = "./results/results.csv"
-    # result_file_util(filename)
-    #
-    # # Adding optional argument
-    # parser.add_argument("-a", "--algo", help="Algorithm to use, e.g., alanezi")
-    # parser.add_argument("-n", "--network", help="Network protocol to use, e.g., ble")
-    # parser.add_argument('-d', '--devices', nargs='+', help="List of specific devices to use, e.g., esp32. "
-    #                                                        "Accepts only pair. "
-    #                                                        "First device in the list is IoT. Second is users.")
-    # parser.add_argument("-s", "--scenario", help="Scenario to use, e.g., shopping_mall")
-    # parser.add_argument("-t", "--tournament", help="Tournament-styled testing", action='store_true')
-    #
-    # # Read arguments from command line
-    # args = parser.parse_args()
-    #
-    # # default seed for reproducibility
-    # random.seed(123)
-    #
-    # if args.tournament:
-    #     # Load the XML file
-    #     tree = parse('tournament_setup.xml')
-    #     root = tree.getroot()
-    #     runs = int(root.find('runs').text)
-    #     networks = [network.text for network in root.findall('networks/network')]
-    #     devices = [device.text for device in root.findall('devices/device')]
-    #     scenarios = [scenario.text for scenario in root.findall('scenarios/scenario')]
-    #     algorithms = [algorithm.text for algorithm in root.findall('algorithms/algorithm')]
-    #
-    #     # get device permutations (we assume only 2 types of devices in a network)
-    #     devices = list(permutations(devices, 2))
-    #     # Run the code for each combination of algorithm, network, and scenario
-    #     for algorithm in algorithms:
-    #         for network in networks:
-    #             for scenario in scenarios:
-    #                 for device in devices:
-    #                     for i in range(runs):
-    #                         # use run number for seed
-    #                         random.seed(i + 1)
-    #                         # Run your code here with the current combination of algorithm, network, and scenario
-    #                         print(f"Run {i + 1} of {runs} for algorithm {algorithm}, network {network}, "
-    #                               f"and scenario {scenario}"
-    #                               f"with devices {device}")
-    #                         main(scenario, network, device, algorithm, filename)
-    # else:
-    #     if not args.algo or not args.network or not args.scenario:
-    #         parser.error("[!] Please provide -a, -s and -n arguments to setup algorithm, scenario and network type.")
-    #         exit(1)
-    #     algo = args.algo
-    #     print("[!] Algorithm: ", algo)
-    #     network_type = args.network
-    #     print("[!] Network: ", network_type)
-    #     scenario_name = args.scenario
-    #     print("[!] Scenario: ", scenario_name)
-    #     if not args.devices:
-    #         print("[!] Devices: Not Provided. Using default: ESP32 (IoT) and Samsung Galaxy Grand Prime!")
-    #         device_types = ["esp32", "samsung_galaxy"]
-    #     else:
-    #         device_types = args.devices
-    #
-    #     main(scenario_name, network_type, device_types, algo, filename)
+    msg = "GEPARD environment. Please provide -a, -s and -n arguments to setup algorithm, scenario and network type."
+    # Initialize parser
+    parser = argparse.ArgumentParser(description=msg)
 
     filename = "./results/results.csv"
     result_file_util(filename)
 
-    main("shoppingmall", "wifi", "alanezi", filename)
+    # Adding optional argument
+    parser.add_argument("-a", "--algo", help="Algorithm to use, e.g., alanezi")
+    parser.add_argument("-n", "--network", help="Network protocol to use, e.g., ble")
+    parser.add_argument("-s", "--scenario", help="Scenario to use, e.g., shopping_mall")
+    parser.add_argument("-t", "--tournament", help="Tournament-styled testing", action='store_true')
 
+    # Read arguments from command line
+    args = parser.parse_args()
+
+    # default seed for reproducibility
+    random.seed(123)
+
+    if args.tournament:
+        # Load the XML file
+        tree = parse('tournament_setup.xml')
+        root = tree.getroot()
+        runs = int(root.find('runs').text)
+        networks = [network.text for network in root.findall('networks/network')]
+        scenarios = [scenario.text for scenario in root.findall('scenarios/scenario')]
+        algorithms = [algorithm.text for algorithm in root.findall('algorithms/algorithm')]
+        # Run the code for each combination of algorithm, network, and scenario
+        for algorithm in algorithms:
+            for network in networks:
+                for scenario in scenarios:
+                    for i in range(runs):
+                        # use run number for seed
+                        random.seed(i + 1)
+                        # Run your code here with the current combination of algorithm, network, and scenario
+                        print(f"Run {i + 1} of {runs} for algorithm {algorithm}, network {network}, "
+                              f"and scenario {scenario}")
+                        main(scenario, network, algorithm, filename)
+    else:
+        if not args.algo or not args.network or not args.scenario:
+            parser.error("[!] Please provide -a, -s and -n arguments to setup algorithm, scenario and network type.")
+            exit(1)
+        algo = args.algo
+        print("[!] Algorithm: ", algo)
+        network_type = args.network
+        print("[!] Network: ", network_type)
+        scenario_name = args.scenario
+        print("[!] Scenario: ", scenario_name)
+        main(scenario_name, network_type, algo, filename)
+
+    print("Processing Results!")
     # Process results
+    # FIXME: Plotting works correctly only for tournament with multiple inputs and runs
     result_processor = ResultProcessor()
     result_processor.process_results()
-    # result_processor.plot_results()
+    result_processor.plot_results()
