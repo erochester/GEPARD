@@ -18,15 +18,13 @@ class University:
         self.radius = 80
 
     def generate_scenario(self):
-        # The university works 24/7
-        last_arrival = 24 * 60
+        # TAssume university times to be 9 am to 5 pm
+        last_arrival = 8 * 60
 
-        # Arrival lambda is assumed to be higher during peak hours
-        # In this case, we'll use a higher lambda for weekdays 9am-5pm
-        lmbd = 0.05  # base arrival rate per minute
-        peak_lmbd = 0.3  # peak arrival rate per minute
-        peak_start = 9 * 60  # 9am in minutes
-        peak_end = 17 * 60  # 5pm in minutes
+        # Based on: https://web.archive.org/web/20150216063946id_/http://people.cs.umass.edu:80/~yungchih/publication/Infocom_mobility_queue.pdf
+        # The arrival rate between 9 am and 5 pm is the most stable at university
+        # We get 14.18 users per minute
+        lmbd = 14.18  # base arrival rate per minute
 
         # Initialize arrival time
         arrival_time = 0
@@ -82,11 +80,7 @@ class University:
             # Get the next probability value from Uniform(0,1)
             p = random.random()
 
-            # Adjust the arrival rate based on the time of day
-            if peak_start <= arrival_time < peak_end:
-                inter_arrival_time = -math.log(1.0 - p) / peak_lmbd
-            else:
-                inter_arrival_time = -math.log(1.0 - p) / lmbd
+            inter_arrival_time = -math.log(1.0 - p) / lmbd
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time
@@ -123,5 +117,9 @@ class University:
         for i, txt in enumerate(["ID: " + str(x.id) for x in self.list_of_users]):
             plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users]))[0][i],
                                list(zip(*[x.arr_loc for x in self.list_of_users]))[1][i]))
+
+        # add x and y axis labels
+        plt.xlabel("meters (m)")
+        plt.ylabel("meters (m)")
 
         plt.show()

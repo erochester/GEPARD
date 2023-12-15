@@ -8,7 +8,7 @@
   <scenarios>
     <scenario>university</scenario>
 <!--    <scenario>hospital</scenario>-->
-<!--    <scenario>shoppingmall</scenario>-->
+<!--    <scenario>shopping_mall</scenario>-->
   </scenarios>
   <algorithms>
 <!--    <algorithm>alanezi</algorithm>-->

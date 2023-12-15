@@ -119,4 +119,8 @@ class Hospital:
             plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users]))[0][i],
                                list(zip(*[x.arr_loc for x in self.list_of_users]))[1][i]))
 
+        # add x and y axis labels
+        plt.xlabel("meters (m)")
+        plt.ylabel("meters (m)")
+
         plt.show()

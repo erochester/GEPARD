@@ -1,24 +1,24 @@
 The combination with the least current consumption is:
-Algorithm: concession
-Network: lora
-Scenario: university
-Current Consumption: 3.73
+Algorithm: alanezi
+Network: ble
+Scenario: hospital
+Current Consumption: 0.04
 
 The combination with the highest user consent is:
-Algorithm: concession
-Network: lora
-Scenario: university
-User Consent: 99.42
+Algorithm: alanezi
+Network: ble
+Scenario: hospital
+User Consent: 100.00
 
 The combination with the least time taken is:
-Algorithm: concession
-Network: lora
-Scenario: university
-Time Taken: 81791.08
+Algorithm: alanezi
+Network: ble
+Scenario: hospital
+Time Taken: 10.96
 
 The combination with the highest user utility is:
-Algorithm: concession
-Network: lora
-Scenario: university
-User Utility: 66.14
+Algorithm: alanezi
+Network: ble
+Scenario: hospital
+User Utility: 61.08
 

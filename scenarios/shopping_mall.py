@@ -23,8 +23,8 @@ class ShoppingMall:
         last_arrival = 10 * 60
 
         # Arrival lambda is assumed from shopping mall data analysis papers
-        # for now it is set to 2 (meaning 2 users arrive per minute)
-        lmbd = 2
+        # ref: https://arxiv.org/pdf/1905.13098.pdf
+        lmbd = 2.55
 
         # Initialize arrival time
         arrival_time = 0
@@ -117,5 +117,9 @@ class ShoppingMall:
             plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users[:10]]))[0][i],
                                list(zip(*[x.arr_loc for x in self.list_of_users[:10]]))[1][i]))
 
+        # add x and y axis labels
+        plt.xlabel("meters (m)")
+        plt.ylabel("meters (m)")
+
         # plt.show()
-        plt.savefig('./misc/shopping_mall.pdf')
+        plt.show()
