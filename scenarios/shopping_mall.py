@@ -21,7 +21,6 @@ class ShoppingMall:
         # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
         # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
         last_arrival = 10 * 60
-        last_arrival = 10
 
         # Arrival lambda is assumed from shopping mall data analysis papers
         # ref: https://arxiv.org/pdf/1905.13098.pdf
