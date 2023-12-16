@@ -1,18 +1,18 @@
 <simulation>
-  <runs>1</runs>
+  <runs>2</runs>
   <networks>
-<!--    <network>ble</network>-->
-<!--    <network>zigbee</network>-->
+    <network>ble</network>
+    <network>zigbee</network>
     <network>lora</network>
   </networks>
   <scenarios>
     <scenario>university</scenario>
-<!--    <scenario>hospital</scenario>-->
-<!--    <scenario>shopping_mall</scenario>-->
+    <scenario>hospital</scenario>
+    <scenario>shopping_mall</scenario>
   </scenarios>
   <algorithms>
-<!--    <algorithm>alanezi</algorithm>-->
-<!--    <algorithm>cunche</algorithm>-->
+    <algorithm>alanezi</algorithm>
+    <algorithm>cunche</algorithm>
     <algorithm>concession</algorithm>
   </algorithms>
 </simulation>

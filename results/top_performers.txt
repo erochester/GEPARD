@@ -1,24 +1,24 @@
 The combination with the least current consumption is:
-Algorithm: alanezi
+Algorithm: cunche
 Network: ble
 Scenario: hospital
-Current Consumption: 0.04
+Current Consumption: 0.22
 
 The combination with the highest user consent is:
 Algorithm: alanezi
-Network: ble
-Scenario: hospital
+Network: zigbee
+Scenario: university
 User Consent: 100.00
 
 The combination with the least time taken is:
 Algorithm: alanezi
 Network: ble
 Scenario: hospital
-Time Taken: 10.96
+Time Taken: 195.84
 
 The combination with the highest user utility is:
-Algorithm: alanezi
-Network: ble
-Scenario: hospital
-User Utility: 61.08
+Algorithm: cunche
+Network: lora
+Scenario: shopping_mall
+User Utility: 69.49
 
