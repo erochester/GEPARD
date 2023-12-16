@@ -150,4 +150,6 @@ if __name__ == "__main__":
     # FIXME: Plotting works correctly only for tournament with multiple inputs and runs
     result_processor = ResultProcessor()
     result_processor.process_results()
-    result_processor.plot_results()
+    # Plot results only works for tournament for now
+    if args.tournament:
+        result_processor.plot_results()

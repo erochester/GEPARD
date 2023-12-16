@@ -16,7 +16,7 @@ if not os.path.isfile(file_path):
 df = pd.read_csv(file_path)
 
 # replace 'Average User Utility' and 'Total User Power Consumption (kWh)' with the column names you want to analyze
-for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power Consumption (kWh)',
+for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power Consumption (W)',
             'Total User Time Spent (s)']:
     formula = f"Q(\'{col}\') ~ Network + Algorithm + Scenario + Network:Algorithm + Network:Scenario + Algorithm:Scenario"
     model = smf.ols(formula=formula, data=df).fit()

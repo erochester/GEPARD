@@ -19,7 +19,8 @@ class Hospital:
 
     def generate_scenario(self):
         # The hospital works 24/7
-        last_arrival = 24 * 60
+        # last_arrival = 24 * 60
+        last_arrival = 60
 
         # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
         lmbd = 0.1584
