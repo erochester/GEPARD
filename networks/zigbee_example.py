@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 zigbee = ZigBee()
 # We test against the mean drain current (mA) as published in the reference papers (E. Casilari et al.)
 
-payload = 217  # bytes
+payload = 102  # bytes
 
 # We calculate the mean drain current (mA)
 
@@ -36,12 +36,12 @@ i_drain_results = [i * 1000 for i in i_drain_results]
 
 # plot the results against t
 
-plt.plot(range(1, 17), i_drain_results, label="Calculated", marker='o')
+plt.plot(range(1, 17), i_drain_results, label="Calculated results", marker='o')
 # add results from the paper
 plt.plot([1, 2, 4, 6, 8, 10, 12, 14, 16], [0.4, 0.21, 0.1, 0.06, 0.05, 0.04, 0.03, 0.029, 0.028],
          label="Reference results", marker='x')
-plt.xlabel("time between consecutive transmissions (s)")
-plt.ylabel("i_drain (mA)")
+plt.xlabel("Time between consecutive transmissions (s)")
+plt.ylabel("Drain current (mA)")
 
 # show legend
 plt.legend()

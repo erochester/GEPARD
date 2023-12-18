@@ -4,6 +4,7 @@ from util import check_distance, calc_utility, calc_time_remaining
 import random
 import sys
 
+# TODO: there is no negotiation?!
 
 class Cunche:
 

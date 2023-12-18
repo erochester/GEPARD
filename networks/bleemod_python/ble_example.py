@@ -43,13 +43,13 @@ def main():
     #     f"scanner: {result.chargeScan}")
     #
     # # The results must align with the reference library implementation results. Output of the original library:
-    # # Duration: const 0.001962000000000 - seq: 0.002765000000000, whole: 0.004727000000000
-    # # Charge: const 0.000014624297000 - seq: 0.000071463685000, whole: 0.000086087982000
-    # # Charge for connection interval: 0.000093730449500
-    # # Connection Request offset charge: 0.000014901899000
-    # # Active Scanning Event: 0.000615441259000
-    # # discovery latency: 583.055109502707069
-    # # discovery energy: advertiser: 0.015175933492857, scanner: 0.393044409090591
+    # Duration: const 0.001962000000000 - seq: 0.002765000000000, whole: 0.004727000000000
+    # Charge: const 0.000014624297000 - seq: 0.000071463685000, whole: 0.000086087982000
+    # Charge for connection interval: 0.000093730449500
+    # Connection Request offset charge: 0.000014901899000
+    # Active Scanning Event: 0.000615441259000
+    # discovery latency: 583.055109502707069
+    # discovery energy: advertiser: 0.015175933492857, scanner: 0.393044409090591
     #
     #
 
