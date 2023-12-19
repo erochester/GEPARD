@@ -96,8 +96,6 @@ class Alanezi:
                 user_consent.append(0)
                 user_consent_obj.append(u)
 
-        # FIXME: user_consent_obj is the same as applicable_users?
-
         # Initialize total variables outside the loop
         total_user_current_consumption = 0
         total_user_time_spent = 0
