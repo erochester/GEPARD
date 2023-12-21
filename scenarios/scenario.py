@@ -18,8 +18,8 @@ class Scenario:
             print("Scenario not supported")
             sys.exit(1)
 
-    def generate_scenario(self):
-        return self.scenario.generate_scenario()
+    def generate_scenario(self, distribution):
+        return self.scenario.generate_scenario(distribution)
 
     def plot_scenario(self):
         return self.scenario.plot_scenario()

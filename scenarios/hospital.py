@@ -1,5 +1,6 @@
 import math
 import random
+from util import Distribution
 
 # visualization imports
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ class Hospital:
         # TODO: The hospital radius is assumed to be the smallest, i.e., 40 meters
         self.radius = 40
 
-    def generate_scenario(self):
+    def generate_scenario(self, dist):
         # The hospital works 24/7
         last_arrival = 24 * 60
 
@@ -75,11 +76,7 @@ class Hospital:
             self.list_of_users.append(user)
             user_id += 1
 
-            # Get the next probability value from Uniform(0,1)
-            p = random.random()
-
-            # Plug it into the inverse of the CDF of Exponential(_lambda)
-            inter_arrival_time = -math.log(1.0 - p) / lmbd
+            inter_arrival_time = dist.generate_random_samples(lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time

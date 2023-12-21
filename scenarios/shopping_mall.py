@@ -3,6 +3,7 @@ import random
 import math
 from user import User
 from iot_device import IoTDevice
+from util import Distribution
 
 # visualization imports
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ class ShoppingMall:
         # TODO: The radius of the shopping mall is assumed to be 120 meters
         self.radius = 120
 
-    def generate_scenario(self):
+    def generate_scenario(self, dist):
         # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
         # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
         last_arrival = 10 * 60
@@ -72,11 +73,7 @@ class ShoppingMall:
             self.list_of_users.append(user)
             user_id += 1
 
-            # Get the next probability value from Uniform(0,1)
-            p = random.random()
-
-            # Plug it into the inverse of the CDF of Exponential(_lambda)
-            inter_arrival_time = -math.log(1.0 - p) / lmbd
+            inter_arrival_time = dist.generate_random_samples(lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time

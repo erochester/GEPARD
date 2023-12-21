@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib.patches import Circle
 
 from user import User
+from util import Distribution
 
 
 class University:
@@ -17,7 +18,7 @@ class University:
         # TODO: The university radius is assumed to be the middle ground, i.e., 80 meters
         self.radius = 80
 
-    def generate_scenario(self):
+    def generate_scenario(self, dist):
         # TAssume university times to be 9 am to 5 pm
         last_arrival = 8 * 60
 
@@ -77,10 +78,7 @@ class University:
             self.list_of_users.append(user)
             user_id += 1
 
-            # Get the next probability value from Uniform(0,1)
-            p = random.random()
-
-            inter_arrival_time = -math.log(1.0 - p) / lmbd
+            inter_arrival_time = dist.generate_random_samples(lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time

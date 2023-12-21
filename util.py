@@ -2,7 +2,8 @@ import numpy as np
 import shutil
 import os
 import csv
-
+import random
+import math
 
 def calc_utility(time, energy, weights):
     # Calculate the utility of the device
@@ -88,3 +89,21 @@ def write_results(filename, rows):
 
         # Write the data rows
         csvwriter.writerows(rows)
+
+class Distribution():
+    def __init__(self, distribution_type):
+        self.distribution_type = distribution_type
+
+    def generate_random_samples(self, rate):
+        if self.distribution_type == "poisson":
+            if rate is None:
+                raise ValueError("Rate parameter is required for exponential distribution")
+            # Poisson process
+            # Get the next probability value from Uniform(0,1)
+            p = random.random()
+
+            # Plug it into the inverse of the CDF of Exponential(_lambda)
+            inter_arrival_time = -math.log(1.0 - p) / rate
+            return inter_arrival_time
+        else:
+            raise ValueError("Unsupported distribution type")

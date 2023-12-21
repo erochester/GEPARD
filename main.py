@@ -11,10 +11,10 @@ from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
 from process_results import ResultProcessor
 from scenarios.scenario import Scenario
-from util import result_file_util, write_results
+from util import result_file_util, write_results, Distribution
 
 
-def main(scenario_name, network_type, algo, filename):
+def main(scenario_name, network_type, algo, filename, distribution_type):
     # make scenario lower case for consistency
     scenario_name = scenario_name.lower()
 
@@ -31,9 +31,12 @@ def main(scenario_name, network_type, algo, filename):
     # initialize iot device
     iot_device = IoTDevice((0, 0))
 
+    # create distribution object
+    dist = Distribution(distribution_type)
+
     # Generates the users/PAs
     scenario = Scenario(scenario_name, list_of_users, iot_device)
-    scenario.generate_scenario()
+    scenario.generate_scenario(dist)
     print("Number of users: ", len(scenario.list_of_users))
 
     # plot user locations
@@ -107,9 +110,15 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--network", help="Network protocol to use, e.g., ble")
     parser.add_argument("-s", "--scenario", help="Scenario to use, e.g., shopping_mall")
     parser.add_argument("-t", "--tournament", help="Tournament-styled testing", action='store_true')
+    parser.add_argument("-d", "--distribution", help="Distribution to use, e.g., poisson")
 
     # Read arguments from command line
     args = parser.parse_args()
+
+    if not args.distribution:
+        distribution_type = "poisson"
+    else:
+        distribution_type = args.distribution
 
     # default seed for reproducibility
     random.seed(123)
@@ -143,7 +152,7 @@ if __name__ == "__main__":
         print("[!] Network: ", network_type)
         scenario_name = args.scenario
         print("[!] Scenario: ", scenario_name)
-        main(scenario_name, network_type, algo, filename)
+        main(scenario_name, network_type, algo, filename, distribution_type)
 
     print("Processing Results!")
     # Process results
