@@ -5,12 +5,27 @@ import sys
 
 
 class Concession:
-
+    """
+    Implements Concession negotiation algorithm. Includes BLE, ZigBee and LoRa based negotiations.
+    """
     def __init__(self, network):
+        """
+        Initializes Concession class. Includes BLE, ZigBee and LoRa based negotiations.
+        Also includes user_utility dictionary of user's utility where user's id is the key
+        :param network: network type (e.g., BLE)
+        """
         self.network = network
         self.user_utility = {}
 
     def run(self, curr_users_list, iot_device):
+        """
+        Main driver for the negotiations. Sets up the main parameter, determines applicable user set for the
+        negotiations, calls multiprocessor to run the negotiation matching the network type selected and processes
+        the results.
+        :param curr_users_list: list of current users in the environment (Users object).
+        :param iot_device: IoT device object.
+        :return: Returns total device power and time consumption, as well as the updated user lists.
+        """
         # list of consented users
         user_consent = []
 
@@ -33,7 +48,7 @@ class Concession:
             if check_distance(u.curr_loc, distance) and not u.consent:
                 applicable_users.append(u)
 
-        for round in range(5):
+        for step in range(5):
             # If all users have already consented, exit negotiation
             if len(applicable_users) == len(user_consent):
                 break
@@ -105,7 +120,10 @@ class Concession:
             total_user_time_spent, total_owner_time_spent
 
     def calc_assumed_utility(self, user):
-        # Calculate user's utility given how much longer the user stays in the environment
+        """
+        Calculate user's utility given how much longer the user stays in the environment
+        :param user: User object under consideration.
+        """
 
         # Get user id
         user_id = user.id_
@@ -120,6 +138,13 @@ class Concession:
         self.user_utility[user_id] = utility
 
     def ble_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        BLE-based Concession negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -189,6 +214,13 @@ class Concession:
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 
     def zigbee_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        ZigBee-based Concession negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -235,6 +267,13 @@ class Concession:
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 
     def lora_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        LoRa-based Concession negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 

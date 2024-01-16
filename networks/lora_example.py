@@ -1,5 +1,10 @@
 import math
 
+"""
+Showcasing an example usage for LoRa. The results are used to validate the implementation by comparing the results
+with existing LoRa airtime and power consumption calculators.
+"""
+
 payload = 217
 
 # How many packets to send

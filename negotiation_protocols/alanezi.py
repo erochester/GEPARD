@@ -6,11 +6,26 @@ import sys
 
 
 class Alanezi:
+    """
+    Implements Alanezi negotiation algorithm. Includes BLE, ZigBee and LoRa based negotiations.
+    """
 
     def __init__(self, network):
+        """
+        Initializes Alanezi class.
+        :param network: network type (e.g., BLE)
+        """
         self.network = network
 
     def run(self, curr_users_list, iot_device):
+        """
+        Main driver for the negotiations. Sets up the main parameter, determines applicable user set for the
+        negotiations, calls multiprocessor to run the negotiation matching the network type selected and processes
+        the results.
+        :param curr_users_list: list of current users in the environment (Users object).
+        :param iot_device: IoT device object.
+        :return: Returns total device power and time consumption, as well as the updated user lists.
+        """
         # list of consented users
         user_consent = []
         user_consent_obj = []
@@ -18,11 +33,6 @@ class Alanezi:
         # FIXME: For now we assume 217 and 639 bytes the sizes of PP (should be dynamic?)
         user_pp_size = 217
         owner_pp_size = 639
-
-        total_user_current_consumption = 0
-        total_owner_current_consumption = 0
-        total_user_time_spent = 0
-        total_owner_time_spent = 0
 
         # FIXME: for now we assume that the IoT owner precisely knows the user's privacy preferences and
         #  what to offer to them
@@ -56,8 +66,8 @@ class Alanezi:
                     # as per work gamma is a value in range (0.75,1]
                     gamma = random.uniform(0.76, 1.0)
                     # combination of these values makes sure that only 20.4% of fundamentalists consent
-                    util = -gamma * priv_policy[0] * priv_policy[1] * priv_policy[2] * priv_policy[3] + \
-                           sum(list(priv_policy))
+                    util = (-gamma * priv_policy[0] * priv_policy[1] * priv_policy[2] * priv_policy[3] +
+                            sum(list(priv_policy)))
                     if util >= 0:
                         u.update_consent(True)
                         user_consent.append(1)
@@ -141,10 +151,10 @@ class Alanezi:
     def consumption_for_user(self, args):
         """
         Used to parallelize the consumption calculations since BLE library takes a while to compute.
-        :param args:
-        :return:
+        :param args: Arguments used to run the functions. Includes: user_data, user_pp_size, owner_pp_size,
+        user_consent_obj, user_consent, applicable_users, iot_device.
+        :return: Returns total device power and time consumption, as well as the updated user lists.
         """
-
         (curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent,
          user_utility, owner_utility) = 0, 0, 0, 0, 0, 0
 
@@ -183,9 +193,17 @@ class Alanezi:
                                      curr_owner_power_consumption, iot_device.weights)
 
         # Return the local results
-        return curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent, user_utility, owner_utility
+        return (curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent,
+                user_utility, owner_utility)
 
     def ble_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        BLE-based Alanezi negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -222,11 +240,6 @@ class Alanezi:
         total_user_power_consumption += result.chargeAdv
         total_owner_power_consumption += result.chargeScan
 
-        # print duration and charge of discovery
-        # print("Duration of discovery: ", result.discoveryLatency)
-        # print("Charge of discovery (user): ", result.chargeAdv)
-        # print("Charge of discovery (owner): ", result.chargeScan)
-
         # at the end of discovery the device go through connection establishment
         # as per documentation there is no duration, since it is accounted in the discovery
         # For user we set periodic scan type
@@ -240,10 +253,6 @@ class Alanezi:
             (1, 0, 0,
              0,
              0.1))
-
-        # print charge of connection establishment
-        # print("Charge of connection establishment (user): ", total_user_power_consumption)
-        # print("Charge of connection establishment (owner): ", total_owner_power_consumption)
 
         # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
 
@@ -273,9 +282,17 @@ class Alanezi:
                                                                                                  [user_pp_size], 3)
             total_user_power_consumption += power_spent
 
-        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
+        return (total_user_power_consumption, total_owner_power_consumption, total_user_time_spent,
+                total_owner_time_spent)
 
     def zigbee_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        ZigBee-based Alanezi negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -283,7 +300,7 @@ class Alanezi:
         # BLE broadcast with data request information (user is advertising and IoT owner is scanning, user PP is sent)
         # -> connection establishment -> IoT owner accepts/negotiation -> …done?
 
-        # We adjust the negotation flow to fit Zigbee as follows:
+        # We adjust the negotiation flow to fit Zigbee as follows:
         # ZigBee Mote (user) starts up ->
         # -> Mote associates with the Coordinator (IoT device) -> Mote sends data request information to Coordinator
         # -> Coordinator accepts/negotiation -> ...done?
@@ -357,6 +374,13 @@ class Alanezi:
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 
     def lora_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        LoRa-based Alanezi negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -364,7 +388,7 @@ class Alanezi:
         # BLE broadcast with data request information (user is advertising and IoT owner is scanning, user PP is sent)
         # -> connection establishment -> IoT owner accepts/negotiation -> …done?
 
-        # We adjust the negotation flow to fit Lora as follows:
+        # We adjust the negotiation flow to fit Lora as follows:
         # Class A LoRa node sends data request information to the Gateway
         # -> Gateway accepts/negotiation -> ...done?
 
@@ -411,4 +435,5 @@ class Alanezi:
             total_user_power_consumption += power_tx
             total_owner_power_consumption += power_rx
 
-        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
+        return (total_user_power_consumption, total_owner_power_consumption, total_user_time_spent,
+                total_owner_time_spent)

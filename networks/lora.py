@@ -1,10 +1,15 @@
 import math
 
-# We assume Class A device
 
 class LoRa:
-
+    """
+    Implements LoRa networks. We assume Class A LoRa device.
+    """
     def __init__(self):
+        """
+        Initialize the maximum payload, assumed maximum effective communication distance, voltage
+        and current consumption and other variables.
+        """
         # mA reference:
         # https://cdn.cnx-software.com/wp-content/uploads/2018/03/LoRaWAN-vs-NB-IoT-LTE-Cat-M1-Power-Consumption.jpg?lossy=0&strip=none&ssl=1
         self.voltage = 3.3  # V
@@ -19,7 +24,11 @@ class LoRa:
         self.comm_distance = 10000  # m assume 10 km for lora
 
     def send(self, payload):
-
+        """
+        Method to calculate power and time consumption when sending packet with specific payload size.
+        :param payload: Payload size to send (bytes)
+        :return: Returns power and time consumption.
+        """
         # determine lora mode to use
         # TODO: adding 12 bytes as an overhead per packet
         self.determine_mode(payload)
@@ -48,6 +57,11 @@ class LoRa:
         return (t_tx / 3600) * self.voltage * (self.i_tx / 1000), t_tx
 
     def receive(self, payload):
+        """
+        Method to calculate power and time consumption when receiving packet with specific payload size.
+        :param payload: Payload size to receive (bytes)
+        :return: Returns power and time consumption.
+        """
         # TODO: there is no difference between send and receive
         # determine lora mode to use
         # TODO: adding 12 bytes as an overhead per packet
@@ -77,6 +91,11 @@ class LoRa:
         return (t_tx / 3600) * self.voltage * (self.i_rx / 1000), t_tx
 
     def determine_mode(self, payload):
+        """
+        Determine the LoRa mode to use (i.e., SF/BW combination) based on the payload.
+        Simple implementation of Adaptive Data Rate (ADR).
+        :param payload: Payload size in bytes.
+        """
         # the pp size determines the mode we will use
         if payload <= 51:
             self.lora_max_payload = 51  # bytes

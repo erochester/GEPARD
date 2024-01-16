@@ -1,4 +1,3 @@
-import math
 import random
 
 # visualization imports
@@ -7,7 +6,6 @@ import numpy as np
 from matplotlib.patches import Circle
 
 from user import User
-from util import Distribution
 
 
 class University:

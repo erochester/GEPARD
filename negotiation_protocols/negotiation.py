@@ -5,12 +5,21 @@ import sys
 
 
 class NegotiationProtocol:
+    """
+    Metaclass for Negotiation Protocols. Used to unify and call different negotiation protocols/algorithms.
+    """
     def __init__(self, algo, network, logger):
         self.algo = algo
         self.network = network
         self.logger = logger
 
     def run(self, list_of_users, iot_device):
+        """
+        Driver for the negotiation protocols. Calls the respective negotiation protocol run().
+        :param list_of_users: List of current users in the area (User object).
+        :param iot_device: IoT device object.
+        :return: Returns the calculated power and time consumption for users and IoT device.
+        """
         if self.algo == "alanezi":
             alanezi = Alanezi(self.network)
             return alanezi.run(list_of_users, iot_device)
@@ -23,4 +32,3 @@ class NegotiationProtocol:
         else:
             print("Negotiation protocol not supported")
             sys.exit(1)
-

@@ -4,23 +4,32 @@ from util import check_distance, calc_utility, calc_time_remaining
 import random
 import sys
 
+
 class Cunche:
+    """
+    Implements Cunche negotiation algorithm. Includes BLE, ZigBee and LoRa based negotiations.
+    """
 
     def __init__(self, network):
+        """
+        Initializes Cunche class.
+        :param network: network type (e.g., BLE)
+        """
         self.network = network
 
     def run(self, curr_users_list, iot_device):
-        # list of consented users
-        user_consent = []
+        """
+        Main driver for the negotiations. Sets up the main parameter, determines applicable user set for the
+        negotiations, calls multiprocessor to run the negotiation matching the network type selected and processes
+        the results.
+        :param curr_users_list: list of current users in the environment (Users object).
+        :param iot_device: IoT device object.
+        :return: Returns total device power and time consumption, as well as the updated user lists.
+        """
 
+        # Privacy policy size in bytes
         user_pp_size = 38
         owner_pp_size = 86
-
-        total_user_power_consumption = 0
-        total_owner_power_consumption = 0
-
-        total_user_time_spent = 0
-        total_owner_time_spent = 0
 
         # remove users that are > x meters away from IoT device
         applicable_users = []
@@ -29,6 +38,7 @@ class Cunche:
             if check_distance(u.curr_loc, distance):
                 applicable_users.append(u)
 
+        # list of consented users
         user_consent = []
         user_consent_obj = []
 
@@ -38,7 +48,7 @@ class Cunche:
                 # check the user's privacy label
                 if u.privacy_label == 1:
                     # for fundamentalists, we offer we see if user is in 79.6% non-consenting
-                    if random.random() <= 0.796:
+                    if random.random() > 0.796:
                         # of these only 25% consent in first phase and 75% in second phase
                         if random.random() <= 0.25:
                             u.update_consent(True)
@@ -112,9 +122,9 @@ class Cunche:
     def consumption_for_user(self, args):
         """
         Used to parallelize the consumption calculations since BLE library takes a while to compute.
-        :param self:
-        :param args:
-        :return:
+        :param args: Arguments used to run the functions. Includes: user_data, user_pp_size, owner_pp_size,
+        user_consent_obj, user_consent, applicable_users, iot_device.
+        :return: Returns total device power and time consumption, as well as the updated user lists.
         """
 
         (curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent,
@@ -151,16 +161,25 @@ class Cunche:
 
         # Calculate user and owner utility
         # update utility
-        user_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_user_power_consumption, user_consent_obj[index].weights)
+        user_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_user_power_consumption,
+                                    user_consent_obj[index].weights)
         user_consent_obj[index].update_utility(user_consent_obj[index].utility + user_utility)
 
-        owner_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_owner_power_consumption, iot_device.weights)
+        owner_utility = calc_utility(calc_time_remaining(user_consent_obj[index]), curr_owner_power_consumption,
+                                     iot_device.weights)
         iot_device.update_utility(iot_device.utility + owner_utility)
 
         # Return the local results
         return curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent, user_utility, owner_utility
 
     def ble_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        BLE-based Cunche negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -247,7 +266,6 @@ class Cunche:
                                                                                                      [user_pp_size], 3)
                 total_user_power_consumption += power_spent
 
-
             else:
                 print("Invalid consent value in cunche.py.")
                 sys.exit(1)
@@ -255,6 +273,13 @@ class Cunche:
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 
     def zigbee_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        ZigBee-based Cunche negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -324,6 +349,13 @@ class Cunche:
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 
     def lora_negotiation(self, user_pp_size, owner_pp_size, u):
+        """
+        LoRa-based Cunche negotiation implementation.
+        :param user_pp_size: User privacy policy size in bytes.
+        :param owner_pp_size: User privacy policy size in bytes.
+        :param u: Current user under negotiation.
+        :return: Power and time consumption of user and iot device.
+        """
         total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent \
             = 0, 0, 0, 0
 
@@ -371,4 +403,5 @@ class Cunche:
                 print("Invalid consent value in cunche.py.")
                 sys.exit(1)
 
-        return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
+        return (total_user_power_consumption, total_owner_power_consumption, total_user_time_spent,
+                total_owner_time_spent)
