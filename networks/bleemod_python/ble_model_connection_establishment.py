@@ -3,14 +3,12 @@ from networks.bleemod_python.ble_model_connected import BLEConnected
 from networks.bleemod_python.ble_model_params_connection_establishment import BLEConnectionEstablishmentParams
 from networks.bleemod_python.ble_model_params import *
 
-'''
-Energy model for BLE connection request procedures and for connection update procedures
-This file implements a model for connection parameter update procedures and for connection request procedures
-'''
-
 
 class BLEConnectionEstablishment:
-
+    """
+    Energy model for BLE connection request procedures and for connection update procedures
+    Implements a model for connection parameter update procedures and for connection request procedures
+    """
     def ble_e_model_ce_get_charge_for_connection_procedure(self, establishment_or_update, scan_type, master_or_slave,
                                                            Tc_old, Tc_new):
         """

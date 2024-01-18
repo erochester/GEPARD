@@ -27,7 +27,7 @@ class LoRa:
         """
         Method to calculate power and time consumption when sending packet with specific payload size.
         :param payload: Payload size to send (bytes)
-        :return: Returns power and time consumption.
+        :return: Returns power and time consumption (W and s).
         """
         # determine lora mode to use
         # TODO: adding 12 bytes as an overhead per packet
@@ -60,7 +60,7 @@ class LoRa:
         """
         Method to calculate power and time consumption when receiving packet with specific payload size.
         :param payload: Payload size to receive (bytes)
-        :return: Returns power and time consumption.
+        :return: Returns power and time consumption (W and s).
         """
         # TODO: there is no difference between send and receive
         # determine lora mode to use

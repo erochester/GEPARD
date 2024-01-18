@@ -1,13 +1,22 @@
-# We consider the best case scenario without retransmissions and collisions. Non-beacon setup.
-# Reference: Modelling of Current Consumption in 802.15.4/ZigBee Sensor Motes (E. Casilari et al.)
-
 class ZigBee:
+    """
+    Implements ZigBee networks.
+    We consider the best case scenario without retransmissions and collisions. Non-beacon setup.
+    Reference: Modelling of Current Consumption in 802.15.4/ZigBee Sensor Motes (E. Casilari et al.)
+    """
     def __init__(self):
+        """
+        Specifies operating voltage, ACK packet size and effective communication distance.
+        """
         self.voltage = 3.6  # V
         self.ack_size = 65  # bytes
         self.comm_distance = 100  # m effective communication distance for ZigBee
 
     def startup(self):
+        """
+        Used to account for radio startup power and time consumptions.
+        :return: Power and time consumed (W and s).
+        """
         # 2 mA as per reference. Power-up microcontroller.
         total_power_consumed = 2 * self.voltage  # mW
 
@@ -22,7 +31,12 @@ class ZigBee:
         return total_power_consumed, total_duration
 
     def association(self):
-        # FIXME: We simplify association modelling by assuming that Coordinator consumes same amount of power and time and mote
+        """
+        Used to account for association process power and time consumptions.
+        :return: Power and time consumed (W and s).
+        """
+        # FIXME: We simplify association modelling by assuming that Coordinator consumes same amount
+        #  of power and time and mote
 
         # Scanning in 1 channel
         total_power_consumed = 26.6 * self.voltage  # mW
@@ -38,6 +52,11 @@ class ZigBee:
         return total_power_consumed, total_duration
 
     def send(self, payload):
+        """
+        Used to account for sending a packet of payload size power and time consumptions.
+        :param payload: payload size (bytes)
+        :return: Power and time consumed (W and s).
+        """
         t_tx = (8 * (31 + payload)) / 250000  # s, where 250000 is the data rate in bps
 
         t_onoff = 0.013  # s is the wake-up and turn off the transceiver and transmit data to MCU time
@@ -59,6 +78,11 @@ class ZigBee:
         return total_power_consumed, total_duration
 
     def receive(self, payload):
+        """
+        Used to account for receiving a packet of payload size power and time consumptions.
+        :param payload: payload size (bytes)
+        :return: Power and time consumed (W and s).
+        """
         t_rx = (8 * (31 + payload)) / 250000  # s
 
         t_onoff = 0.013  # s is the wake-up and turn off the transceiver and transmit data to MCU time

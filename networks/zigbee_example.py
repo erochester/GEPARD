@@ -1,8 +1,13 @@
 from networks.zigbee import ZigBee
 import matplotlib.pyplot as plt
 
+"""
+Showcasing an example usage for ZigBee. The results are used to validate the implementation by comparing the results
+with existing ZigBee works. Specifically, we test against the mean drain current (mA) as published 
+in the reference papers (E. Casilari et al.)
+"""
+
 zigbee = ZigBee()
-# We test against the mean drain current (mA) as published in the reference papers (E. Casilari et al.)
 
 payload = 102  # bytes
 

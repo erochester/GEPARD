@@ -13,6 +13,9 @@ You probably don't want to use this function for online power management as it i
 
 
 class DiscoveryModelResult:
+    """
+    Class to store the device discovery model results.
+    """
     def __init__(self):
         # Result of the model for device discovery.
         self.chargeAdv = 0  # The charge consumed by the advertiser for device discovery [As]
@@ -21,6 +24,9 @@ class DiscoveryModelResult:
 
 
 class BLEDiscovery:
+    """
+    BLE device discovery implementation.
+    """
     def _ble_model_discovery_normcdf(self, x, mu, sigma):
         """
         Calculates cumulative density function (CDF) of a (mu, sigma)-normal distribution by transforming the Gaussian CDF
@@ -57,13 +63,13 @@ class BLEDiscovery:
     def _ble_model_discovery_get_approx_probab(self, mu, n, sigma, t, Ta_ideal, rho_max):
         """
         Computes the approximate probability of an advertising event having started before time t
-        :param: mu Mean value of the starting time of the advertising event (=TaReal)
-        :param: n Number of the advertising event. 0 => The event right after phi. 1=> Event after one advertising interval,
-        2=> Event after two advertising intervals
-        :param: sigma	Standard deviation of the starting time of the advertising event
-        :param: t	Time to evaluate the CDF
-        :param: TaIdeal Ideal point in time the advertising event  starts(when no random advertising delay would exist)
-        :param: rhoMax Maximum random advDelay
+        :param mu: Mean value of the starting time of the advertising event (=TaReal)
+        :param n: Number of the advertising event. 0 => The event right after phi.
+        1=> Event after one advertising interval, 2=> Event after two advertising intervals
+        :param sigma:	Standard deviation of the starting time of the advertising event
+        :param t:	Time to evaluate the CDF
+        :param Ta_ideal: Ideal point in time the advertising event  starts(when no random advertising delay would exist)
+        :param rho_max: Maximum random advDelay
         :return: Approximate probability that the advertising event starts before t
         """
         if n == 0:
@@ -93,19 +99,19 @@ class BLEDiscovery:
         """
         Returns the model results (discovery-latency and discover-energy both for advertiser and scanner)
         for a given value offset phi
-        :param: epsilonHit The hit probability of all advertising events examined.
+        :param epsilon_hit: The hit probability of all advertising events examined.
         As soon as the algorithm has reached this probability, it will consider the results as stable and stop.
         The closer this value becomes to one, the more precise the results become,
         but the algorithm takes longer as more advertising events are examined.
         Example: The first advertising event hits with probability 0.5, the second with 0.25 and the third with 0.15.
         The hit probability would be 0.5+0.25+0.15 = 0.9
         If epsilonHit is 0.89, the algorithm would end after three advertising events
-        :param: Ta Advertising interval [s]
-        :param: Ts Scan interval [s]
-        :param: ds Scan window [s]
-        :param: phi Offset of the first scan event (n=0) from the beginning of the scanning process
-        :param: rhoMax Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
-        :param: maxTime The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
+        :param Ta: Advertising interval [s]
+        :param Ts: Scan interval [s]
+        :param ds: Scan window [s]
+        :param phi: Offset of the first scan event (n=0) from the beginning of the scanning process
+        :param rho_max: Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
+        :param max_time: The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
         :return: Discovery latency and the discovery energy spent by the advertiser and the scanner
         """
         result = DiscoveryModelResult()
@@ -279,20 +285,20 @@ class BLEDiscovery:
         Overloaded to support Alanezi work.
         Returns the model results (discovery-latency and discover-energy both for advertiser and scanner)
         for a given value offset phi
-        :param: epsilonHit The hit probability of all advertising events examined.
+        :param epsilon_hit: The hit probability of all advertising events examined.
         As soon as the algorithm has reached this probability, it will consider the results as stable and stop.
         The closer this value becomes to one, the more precise the results become,
         but the algorithm takes longer as more advertising events are examined.
         Example: The first advertising event hits with probability 0.5, the second with 0.25 and the third with 0.15.
         The hit probability would be 0.5+0.25+0.15 = 0.9
         If epsilonHit is 0.89, the algorithm would end after three advertising events
-        :param: Ta Advertising interval [s]
-        :param: Ts Scan interval [s]
-        :param: ds Scan window [s]
-        :param: phi Offset of the first scan event (n=0) from the beginning of the scanning process
-        :param: rhoMax Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
-        :param: maxTime The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
-        :param: n_bytes_tx Number of bytes sent in a scan request or connection request packet by the master .
+        :param Ta: Advertising interval [s]
+        :param Ts: Scan interval [s]
+        :param ds: Scan window [s]
+        :param phi: Offset of the first scan event (n=0) from the beginning of the scanning process
+        :param rho_max: Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
+        :param max_time: The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
+        :param n_bytes_tx: Number of bytes sent in a scan request or connection request packet by the master .
         Only used for \ref SC_EVENT_TYPE_ACTIVE_SCANNING, \ref SC_EVENT_TYPE_CON_REQ and \ref SC_EVENT_TYPE_CON_REQ_OFFSET
         :return: Discovery latency and the discovery energy spent by the advertiser and the scanner
         """
@@ -469,20 +475,20 @@ class BLEDiscovery:
         """
         Returns the model results (discovery-latency and discover-energy both for advertiser and scanner)
         for varying advertising offsets phi. nPoints different values of phi are examined.
-        :param: nPoints Number of advertising events phi to be examined.
+        :param n_points: Number of advertising events phi to be examined.
         The higher, the better the accuracy becomes but the longer the computation takes.
-        :param: epsilonHit The hit probability of all advertising events examined for a particular phi.
+        :param epsilon_hit: The hit probability of all advertising events examined for a particular phi.
         As soon as the algorithm has reached this probability, it will consider the results as stable and stop.
         The closer this value becomes to one, the more precise the results become, but the algorithm takes longer
         as more advertising events are examined.
         Example: The first advertising event hits with probability 0.5, the second with 0.25 and the third with 0.15.
         The hit probability would be 0.5+0.25+0.15 = 0.9
         If epsilonHit is 0.89, the algorithm would end after three advertising events
-        :param: Ta Advertising interval [s]
-        :param: Ts Scan interval [s]
-        :param: ds Scan window [s]
-        :param: rhoMax Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
-        :param: maxTime The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
+        :param Ta: Advertising interval [s]
+        :param Ts: Scan interval [s]
+        :param ds: Scan window [s]
+        :param rho_max: Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
+        :param max_time: The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
         :return: Discovery latency and the discovery energy spent by the advertiser and the scanner
         """
         delta = (3.0 * Ts) / float(n_points)

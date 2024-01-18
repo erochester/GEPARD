@@ -37,7 +37,10 @@ class BLEModelSCScanType(Enum):
     SC_SCAN_TYPE_CONTINUOUS = 1  # Scan window = scan interval => continuous scanning
 
 
-class BLEScanner():
+class BLEScanner:
+    """
+    Implements BLE scanning state methods.
+    """
     def ble_e_model_sc_get_charge_scan_event(self, scan_window, event_type, scan_type, n_bytes_adv_ind, n_bytes_tx,
                                              n_bytes_rx,
                                              reception_after_time):
@@ -50,19 +53,19 @@ class BLEScanner():
         Therefore, the event duration is determined by definition: The event begins when a scanner begins scanning on a
         certain channel and ends with the end of the channel-changing to the next channel.
         Therefore, each scan event contains on channel-changing phase.
-        :param: scanWindow	Scan window [s]. for SC_EVENT_TYPE_CON_REQ_OFFSET, this parameter is discarded
-        :param: eventType	Type of the scan event that occurs.
-        :param: scanType	Determines weather periodic scanning (scan window < scan interval) or
+        :param scan_window:	Scan window [s]. for SC_EVENT_TYPE_CON_REQ_OFFSET, this parameter is discarded
+        :param event_type:	Type of the scan event that occurs.
+        :param scan_type:	Determines weather periodic scanning (scan window < scan interval) or
         continuous scanning (scan window = scan interval) takes place.
-        :param: nBytesAdvInd	Bytes of the ADV_IND packet received.
+        :param n_bytes_adv_ind:	Bytes of the ADV_IND packet received.
         This value is currently ignored, it may be set to any value. It is reserved for future use.
-        :param: nBytesTx	Number of bytes sent in a scan request or connection request packet by the master .
+        :param n_bytes_tx:	Number of bytes sent in a scan request or connection request packet by the master .
         Only used for \ref SC_EVENT_TYPE_ACTIVE_SCANNING, \ref SC_EVENT_TYPE_CON_REQ and \ref SC_EVENT_TYPE_CON_REQ_OFFSET
-        :param: nBytesRx	Number of bytes received in a scan response. Only used for \ref SC_EVENT_TYPE_ACTIVE_SCANNING .
-        :param: receptionAfterTime	Number of seconds beginning from the scan event after which
+        :param n_bytes_rx:	Number of bytes received in a scan response. Only used for \ref SC_EVENT_TYPE_ACTIVE_SCANNING .
+        :param reception_after_time:	Number of seconds beginning from the scan event after which
         an advertising packet has been received completely. As this value is unknown most times,
         the beginning of the reception can be inserted
-        :return:Charge consumed by the scan event [As]
+        :return: Charge consumed by the scan event [As]
         """
         # Charge for pre- and postprocessing
         charge = BLE_E_MOD_SCAN_DPRE * BLE_E_MOD_SCAN_IPRE + BLE_E_MOD_SCAN_DPOST * BLE_E_MOD_SCAN_IPOST

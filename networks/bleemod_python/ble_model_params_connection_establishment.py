@@ -4,19 +4,30 @@ BLE_E_MOD_CE_DTWO_CU = 0  # Transmit window offset for connection update procedu
 
 
 class BLEConnectionEstablishmentParams:
+    """
+    Specifies/implements methods for BLE connection establishment parameters.
+    """
     def BLE_E_MOD_CE_DTWO_CR(self, TcNew):
         """
-        Transmit window offset for connection request procedures.
         Contains a nonlinear formula depending on the future connection interval TcNew.
+        :param TcNew: connection interval (s)
+        :return: Transmit window offset for connection request procedures.
         """
         return TcNew - 0.006454 if TcNew > 0.0125 else 0.389 * TcNew + 0.000484
 
     def BLE_E_MOD_CE_DTW(self, TcNew):
-        """Transmit window. Might depend on the future connection interval TcNew; for BLE112 devices it does not."""
+        """
+        Might depend on the future connection interval TcNew; for BLE112 devices it does not.
+        :param TcNew: connection interval (s)
+        :return: Transmit window.
+        """
         return 0.003
 
     def BLE_E_MOD_CE_DP(self, TcNew):
-        """The average time the transmission begins after the beginning of the transmit window."""
+        """
+        :param TcNew: connection interval (s)
+        :return: The average time the transmission begins after the beginning of the transmit window.
+        """
         return self.BLE_E_MOD_CE_DTW(TcNew) / 2.0
 
 

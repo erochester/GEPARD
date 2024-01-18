@@ -2,15 +2,15 @@ import numpy as np
 from networks.bleemod_python.ble_model_params import *
 from networks.bleemod_python.ble_model_scanning import BLEScanner
 
-'''
-BLE Energy model for the connected mode
-'''
 
 # maximum number of communication sequences possible
 BLE_E_MODE_INT_MAXSEQUENCES = 15  # Adjust as needed
 
 
-class BLEConnected():
+class BLEConnected:
+    """
+    BLE Energy model for the connected mode
+    """
     def ble_e_model_c_get_charge_constant_parts(self):
         """
         Returns the charge of all constant parts of the model.
@@ -95,15 +95,15 @@ class BLEConnected():
         Returns the charge of the communication sequence phases. Each must have the same number of bytes sent or received
         (to overcome this limitation, please use ble_e_model_c_getChargeSequences() )
         These sequences are: Communication preamble, Window-Widening (slave), Rx, Rx2Tx,Tx,Tx2Rx
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: Charge consumed by the sequences [C]
         """
         charge = 0
@@ -189,15 +189,15 @@ class BLEConnected():
         and received.
         The sleep duration in the connection interval is not accounted for.
         See ble_e_model_c_getChargeConnectionInterval() for the charge consumed per interval.
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: Charge consumed by the connection event [C]
         """
         charge = self.ble_e_model_c_get_charge_constant_parts()
@@ -210,15 +210,15 @@ class BLEConnected():
         Each sequence must have the same number of bytes sent and received.
         The sleep duration in the connection interval is not accounted for.
         See ble_e_model_c_getChargeConnectionInterval() for the charge consumed per interval.
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: Charge consumed by the connection event [C]
         """
         charge = self.ble_e_model_c_get_charge_constant_parts()
@@ -229,15 +229,15 @@ class BLEConnected():
         """
         Returns the duration of a BLE connection event. Each sequence may have a unique number of bytes sent and received.
         The sleep duration in the connection interval is not accounted for.
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: Duration of the connection event [s]
         """
         duration = self.ble_e_model_c_get_duration_constant_parts()
@@ -248,11 +248,14 @@ class BLEConnected():
         """
         Returns the duration of a BLE connection event. Each sequence must have the same number of bytes sent and received.
         The sleep duration in the connection interval is not accounted for.
-        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx; Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
         :param Tc: Connection interval
         :param n_seq: Number of sequences (pairs of packets per connection event)
-        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence (pair of packet). Must include all protocol overheads.
-        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence (pair of packet). Must include all protocol overheads.
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
+        (pair of packet). Must include all protocol overheads.
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        (pair of packet). Must include all protocol overheads.
         :param tx_power: Tx-Power setting of the device
         :return: Duration of the connection event [s]
         """
@@ -266,15 +269,15 @@ class BLEConnected():
         Returns the charge consumed within a BLE connection interval.
         It includes both the connection event and the sleep duration.
         Each sequence may have a unique number of bytes sent and received.
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: Charge consumed within one connection interval [C]
         """
         duration = self.ble_e_model_c_get_duration_event(master_or_slave, Tc, n_seq, n_rx, n_tx, tx_power)
@@ -288,15 +291,15 @@ class BLEConnected():
         Returns the charge consumed within a BLE connection interval.
         It includes both the connection event and the sleep duration.
         Each sequence may have a unique number of bytes sent and received.
-        :param: masterOrSlave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
+        :param master_or_slave: 1=>master, 0=>Slave. For the slave, Rx and Tx are swapped (Master: first Tx, then Rx;
         Slave: first Rx, then Tx) and there is window-widening and a longer dPreRx for the first sequence in an event.
-        :param: Tc Connection interval
-        :param: nSeq Number of sequences (pairs of packets per connection event)
-        :param: nRx[] Number of bytes received. Each array element contains the number of bytes received per sequence
+        :param Tc: Connection interval
+        :param n_seq: Number of sequences (pairs of packets per connection event)
+        :param n_rx: Number of bytes received. Each array element contains the number of bytes received per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: nTx[] Number of bytes sent. Each array element contains the number of bytes sent per sequence
+        :param n_tx: Number of bytes sent. Each array element contains the number of bytes sent per sequence
         (pair of packet). Must include all protocol overheads.
-        :param: txPower Tx-Power setting of the device
+        :param tx_power: Tx-Power setting of the device
         :return: Charge consumed within one connection interval [C]
         """
         duration = self.ble_e_model_c_get_duration_event_same_payload(master_or_slave, Tc, n_seq, n_rx, n_tx, tx_power)
