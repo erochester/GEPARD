@@ -3,6 +3,10 @@ import os
 import statsmodels.formula.api as smf
 import statsmodels.stats.anova as sma
 
+"""
+Calculates the relative proportion of variation over the tournament results 
+to analyze the contribution of each PA component to the overall performance of the PA.
+"""
 
 # Ask user for file path
 file_path = input("Enter file path to results file (.csv): ")

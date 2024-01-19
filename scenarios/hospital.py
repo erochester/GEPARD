@@ -1,6 +1,4 @@
-import math
 import random
-from util import Distribution
 
 # visualization imports
 import matplotlib.pyplot as plt
@@ -11,14 +9,26 @@ from user import User
 
 
 class Hospital:
-
+    """
+    Implements the Hospital scenario.
+    """
     def __init__(self, list_of_users, iot_device):
+        """
+        Initializes all the users, the IoT device and the space size for the scenario.
+        :param list_of_users: List of all User objects.
+        :param iot_device: IoT device object.
+        """
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         # TODO: The hospital radius is assumed to be the smallest, i.e., 40 meters
         self.radius = 40
 
     def generate_scenario(self, dist):
+        """
+        Generates the user object and populates it, i.e., arrival and departure times, privacy preferences, etc.
+        Similarly, generates the IoT device object.
+        :param dist: Distribution used to generate user inter-arrival events.
+        """
         # The hospital works 24/7
         last_arrival = 24 * 60
 
@@ -96,6 +106,10 @@ class Hospital:
             user.update_departure_time(departure_time)
 
     def plot_scenario(self):
+        """
+        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        trajectory across the space.
+        """
         fig, ax = plt.subplots()
         plt.rcParams['figure.figsize'] = [4, 4]
 

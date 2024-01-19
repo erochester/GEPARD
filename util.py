@@ -5,18 +5,32 @@ import csv
 import random
 import math
 
+
 def calc_utility(time, energy, weights):
-    # Calculate the utility of the device
-    # Use multi-attribute utility function that has been logarithmically transformed
-    k = 100 #  scaling factor
+    """
+    Calculate the utility of the device
+    Use multi-attribute utility function that has been logarithmically transformed (account for time, energy and weights).
+    :param time: Represents how long the user will be in environment (s).
+    :param energy: Represents current power consumption (W).
+    :param weights: Represents the importance of time left vs power consumption.
+    :return: Estimated utility.
+    """
+    # TODO: we do not account for weight coefficients.
+    k = 100  # scaling factor
 
     # utility = k * (weights[0] * np.log(1+time)/np.log(1+energy))
     utility = k * np.log(1 + time) / np.log(1 + energy)
 
     return utility
 
+
 def calc_time_remaining(user):
-    # Calculate user's time remaining in the environment
+    """
+    Calculate user's time remaining in the environment.
+    :param user: User object.
+    :return: Remaining time in seconds.
+    """
+
     # Get user's current location
     curr_loc = user.curr_loc
     # Get user's destination
@@ -32,7 +46,14 @@ def calc_time_remaining(user):
 
     return time
 
+
 def check_distance(curr_loc, distance):
+    """
+    Used to see if the user is inside the effective communication range.
+    :param curr_loc: User's current location (x,y).
+    :param distance: Effective communication range (m).
+    :return: Boolean value (True of False).
+    """
     if np.sqrt((curr_loc[0] ** 2 + curr_loc[1] ** 2)) >= distance:
         return False
     else:
@@ -40,6 +61,10 @@ def check_distance(curr_loc, distance):
 
 
 def result_file_util(filename):
+    """
+    Utility method for dealing with previously saved results. We can either delete them or create a back-up.
+    :param filename: Name of the file to check for existence and make back-up of (if needed).
+    """
     # Check if the file exists
     if os.path.isfile(filename):
         # File exists, ask the user what to do
@@ -64,6 +89,11 @@ def result_file_util(filename):
 
 
 def write_results(filename, rows):
+    """
+    Method used to write the results of the simulation into the file.
+    :param filename: Results file name.
+    :param rows: Data to write to the file.
+    """
     # Check if the directory exists, if not create it
     directory = os.path.dirname(filename)
     if directory != '' and not os.path.exists(directory):
@@ -90,11 +120,25 @@ def write_results(filename, rows):
         # Write the data rows
         csvwriter.writerows(rows)
 
+
 class Distribution():
+    """
+    Class for different distribution implementation.
+    Currently, implements only Poisson arrival process.
+    """
     def __init__(self, distribution_type):
+        """
+        Initialize the Distribution class.
+        :param distribution_type: Type of distribution to call.
+        """
         self.distribution_type = distribution_type
 
     def generate_random_samples(self, rate):
+        """
+        Generate random samples from the specified distribution.
+        :param rate: Rate parameter (\lambda in case of Poisson).
+        :return: Random inter-arrival time sample.
+        """
         if self.distribution_type == "poisson":
             if rate is None:
                 raise ValueError("Rate parameter is required for exponential distribution")

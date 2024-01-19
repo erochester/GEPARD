@@ -7,7 +7,16 @@ import matplotlib.pyplot as plt
 
 
 class ResultProcessor:
+    """
+    Result processor class.
+    """
+
     def process_results(self):
+        """
+        Processes the results stored in "./results/results.csv" to generate statistics and other insights
+        and saves them in './results/top_performers.txt' for top performers and
+        './results/statistics.csv' for general statistics.
+        """
         filename = "./results/results.csv"
 
         # Define dictionaries to store the data
@@ -214,9 +223,11 @@ class ResultProcessor:
             # Close the file
             f.close()
 
-
     def plot_results(self):
-        # FIXME doesnt work for now
+        """
+        Reads data from './results/results.csv' and plots it on a grid of plots.
+        """
+        # FIXME doesnt work for now for general case. Needs multiple runs and PA variations to work.
         # read data from CSV file
         df = pd.read_csv('./results/results.csv')
 
@@ -252,4 +263,3 @@ class ResultProcessor:
             plt.tight_layout()
             plt.subplots_adjust(hspace=0.5)
             plt.savefig("./results/" + df.columns[j] + ".png")
-

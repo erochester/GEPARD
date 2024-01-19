@@ -1,13 +1,27 @@
 import numpy as np
 from tqdm import tqdm
 
+
 class Driver:
+    """
+    The simulation driver class. Responsible for moving time and events forward.
+    """
     def __init__(self, scenario, negotiation_protocol, logger):
+        """
+        Initializes the driver class.
+        :param scenario: Scenario to be simulated.
+        :param negotiation_protocol: Negotiation protocol/algorithm to be used.
+        :param logger: Logger object.
+        """
         self.scenario = scenario
         self.negotiation_protocol = negotiation_protocol
         self.logger = logger
 
     def run(self):
+        """
+        The main method of the driver that moves the time and events forward.
+        :return: Returns power and time consumption, user consents, and updated scenario objects.
+        """
         # Current user list
         curr_users_list = []
 
@@ -21,7 +35,7 @@ class Driver:
         total_user_power_consumption = 0  # defines the total power consumption of the user
         total_owner_power_consumption = 0  # defines the total power consumption of the owner
         total_user_time_spent = 0  # defines the total time spent by the user
-        total_owner_time_spent = 0 # defines the total time spent by the owner
+        total_owner_time_spent = 0  # defines the total time spent by the owner
         total_consented = 0  # defines the number of users that consented
 
         self.logger.debug("Total Number of Users: " + str(len(self.scenario.list_of_users)))

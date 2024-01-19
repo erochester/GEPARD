@@ -9,18 +9,31 @@ from user import User
 
 
 class University:
-
+    """
+    Implements the Shopping Mall scenario.
+    """
     def __init__(self, list_of_users, iot_device):
+        """
+        Initializes all the users, the IoT device and the space size for the scenario.
+        :param list_of_users: List of all User objects.
+        :param iot_device: IoT device object.
+        """
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         # TODO: The university radius is assumed to be the middle ground, i.e., 80 meters
         self.radius = 80
 
     def generate_scenario(self, dist):
-        # TAssume university times to be 9 am to 5 pm
+        """
+        Generates the user object and populates it, i.e., arrival and departure times, privacy preferences, etc.
+        Similarly, generates the IoT device object.
+        :param dist: Distribution used to generate user inter-arrival events.
+        """
+        # Assume university times to be 9 am to 5 pm
         last_arrival = 8 * 60
 
-        # Based on: https://web.archive.org/web/20150216063946id_/http://people.cs.umass.edu:80/~yungchih/publication/Infocom_mobility_queue.pdf
+        # Based on:
+        # https://web.archive.org/web/20150216063946id_/http://people.cs.umass.edu:80/~yungchih/publication/Infocom_mobility_queue.pdf
         # The arrival rate between 9 am and 5 pm is the most stable at university
         # We get 14.18 users per minute
         lmbd = 14.18  # base arrival rate per minute
@@ -94,6 +107,10 @@ class University:
             user.update_departure_time(departure_time)
 
     def plot_scenario(self):
+        """
+        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        trajectory across the space.
+        """
         fig, ax = plt.subplots()
         plt.rcParams['figure.figsize'] = [4, 4]
 

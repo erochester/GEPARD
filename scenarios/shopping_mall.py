@@ -1,24 +1,35 @@
-import numpy as np
 import random
-import math
-from user import User
-from iot_device import IoTDevice
-from util import Distribution
 
 # visualization imports
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Circle
+
+from user import User
 
 
 class ShoppingMall:
+    """
+    Implements the Shopping Mall scenario.
+    """
 
     def __init__(self, list_of_users, iot_device):
+        """
+        Initializes all the users, the IoT device and the space size for the scenario.
+        :param list_of_users: List of all User objects.
+        :param iot_device: IoT device object.
+        """
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         # TODO: The radius of the shopping mall is assumed to be 120 meters
         self.radius = 120
 
     def generate_scenario(self, dist):
+        """
+        Generates the user object and populates it, i.e., arrival and departure times, privacy preferences, etc.
+        Similarly, generates the IoT device object.
+        :param dist: Distribution used to generate user inter-arrival events.
+        """
         # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
         # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
         last_arrival = 10 * 60
@@ -92,8 +103,11 @@ class ShoppingMall:
             )
             user.update_departure_time(departure_time)
 
-
     def plot_scenario(self):
+        """
+        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        trajectory across the space.
+        """
         fig, ax = plt.subplots()
         plt.rcParams['figure.figsize'] = [4, 4]
 
@@ -106,8 +120,10 @@ class ShoppingMall:
         ax.scatter(*zip(*[x.dep_loc for x in self.list_of_users[:10]]), c='r')
 
         for i in range(len([x.arr_loc for x in self.list_of_users[:10]])):
-            x_points = ([x.arr_loc for x in self.list_of_users[:10]][i][0], [x.dep_loc for x in self.list_of_users[:10]][i][0])
-            y_points = ([x.arr_loc for x in self.list_of_users[:10]][i][1], [x.dep_loc for x in self.list_of_users[:10]][i][1])
+            x_points = (
+            [x.arr_loc for x in self.list_of_users[:10]][i][0], [x.dep_loc for x in self.list_of_users[:10]][i][0])
+            y_points = (
+            [x.arr_loc for x in self.list_of_users[:10]][i][1], [x.dep_loc for x in self.list_of_users[:10]][i][1])
             plt.plot(x_points, y_points, linestyle='dashed')
 
         for i, txt in enumerate(["ID: " + str(x.id_) for x in self.list_of_users[:10]]):

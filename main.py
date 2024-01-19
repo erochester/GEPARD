@@ -29,6 +29,7 @@ def main(scenario_name, network_type, algo, filename, distribution_type):
     list_of_users = []
 
     # initialize iot device
+    # TODO: We assume that the IoT device is always at (0,0).
     iot_device = IoTDevice((0, 0))
 
     # create distribution object
