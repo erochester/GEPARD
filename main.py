@@ -142,7 +142,7 @@ if __name__ == "__main__":
                         # Run your code here with the current combination of algorithm, network, and scenario
                         print(f"Run {i + 1} of {runs} for algorithm {algorithm}, network {network}, "
                               f"and scenario {scenario}")
-                        main(scenario, network, algorithm, filename)
+                        main(scenario, network, algorithm, filename, distribution_type)
     else:
         if not args.algo or not args.network or not args.scenario:
             parser.error("[!] Please provide -a, -s and -n arguments to setup algorithm, scenario and network type.")
