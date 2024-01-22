@@ -35,7 +35,7 @@ Currently implemented values are:
 |alanezi|ble|hospital|poisson|
 |cunche|zigbee|shopping_mall|-|
 |concession|lora|university|-|
-2) Tournament-style Run (make sure to review "tournament.xml" for tournament settings and make appropriate changes)
+2) Tournament-style Run (make sure to review "tournament_setup.xml" for tournament settings and make appropriate changes)
 ```
 python3 main.py -t
 ```
