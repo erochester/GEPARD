@@ -39,6 +39,9 @@ for t in range(1, 17):
 # convert results to mA
 i_drain_results = [i * 1000 for i in i_drain_results]
 
+# setting font size for the plot
+plt.rcParams.update({'font.size': 15})
+
 # plot the results against t
 
 plt.plot(range(1, 17), i_drain_results, label="Calculated results", marker='o')

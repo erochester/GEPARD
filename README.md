@@ -27,7 +27,7 @@ The code was created and tested on Python 3.9.6.
 The code can be run in 2 ways:
 1) Individual Run
 ```
-python3 main.py -a <algorithm> -n <network> -s <scenario> [-d <distribution]
+python3 main.py -a <algorithm> -n <network> -s <scenario> [-d <distribution>]
 ```
 Currently implemented values are:
 |Algorithms|Networks|Scenarios|Distributions|

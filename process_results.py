@@ -1,9 +1,10 @@
 import csv
 import numpy as np
-import re
+import math
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 
 class ResultProcessor:
@@ -227,39 +228,58 @@ class ResultProcessor:
         """
         Reads data from './results/results.csv' and plots it on a grid of plots.
         """
-        # FIXME doesnt work for now for general case. Needs multiple runs and PA variations to work.
-        # read data from CSV file
+        # Read data from CSV file
         df = pd.read_csv('./results/results.csv')
 
-        # Find the number of unique scenarios in the DataFrame
-        z = df['Scenario'].nunique()
-
-        # Group data by algorithm, network, and scenario
+        # Group data by Algorithm, Network, and Scenario
         groups = df.groupby(['Algorithm', 'Network', 'Scenario'])
 
-        for j in range(3, len(df.columns)):
-            # Create subplots with 4 columns and as many rows as needed
-            # fig, axes = plt.subplots(nrows=len(groups) // 4, ncols=4, figsize=(16, 16))
-            fig, axes = plt.subplots(nrows=len(groups) // z + (len(groups) % z > 0), ncols=z, figsize=(16, 16))
-            for i, (group, data) in enumerate(groups):
-                # ax = axes[i // 4, i % 4]  # Get the corresponding subplot axis
-                ax = axes[i // z, i % z]  # Get the corresponding subplot axis
-                ax.set_title(f"{group[0]} - {group[1]} - {group[2]}")
-                data.boxplot(column=df.columns[j], ax=ax)  # Plot boxplot in subplot
-                ax.set_xlabel("")  # Remove x-axis label
-                substring_list = re.findall(r'\((.*?)\)', df.columns[j])
-                # Set y-axis label
-                if substring_list:
-                    ylabel = substring_list[0]
-                    ax.set_ylabel(ylabel)  # y-axis label
-                # Add median value to plot
-                median = data[df.columns[j]].median()
-                # Special case for total user number
-                if df.columns[j] == "Total user number":
-                    ax.text(0.9, median, f"{int(median)}", ha='right', va='center')
-                else:
-                    ax.text(0.9, median, f"{median:.2f}", ha='right', va='center')
+        # Define the metrics you want to plot
+        metrics = ['Total User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Total User Time Spent (s)',
+                   'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'Average User Utility',
+                   'Total Owner Utility']
 
-            plt.tight_layout()
-            plt.subplots_adjust(hspace=0.5)
-            plt.savefig("./results/" + df.columns[j] + ".png")
+        # Get the number of unique algorithms
+        num_algorithms = len(df['Algorithm'].unique())
+
+        # Generate a color map with the number of colors equal to the number of unique algorithms
+        colors = cm.tab10.colors[:num_algorithms]
+
+        # Create a dictionary mapping each algorithm to a color
+        algorithm_colors = dict(zip(df['Algorithm'].unique(), colors))
+
+        # Iterate over each metric
+        for metric in metrics:
+            # Determine the number of subplots needed based on the number of groups
+            num_groups = len(groups)
+            cols = int(math.sqrt(num_groups)) + 1  # Calculate number of columns dynamically
+            rows = (num_groups - 1) // cols + 1  # Calculate number of rows
+
+            # Calculate the figure size based on the number of subplots
+            fig_width = 5 * cols
+            fig_height = 3 * rows
+
+            # Create a new figure for the current metric with dynamically scaled size
+            fig = plt.figure(figsize=(fig_width, fig_height))
+            fig.suptitle(metric, fontsize=16)  # Set the figure title to the metric
+
+            # Iterate over each group and create a subplot for each combination of scenario-algorithm-network
+            for i, (group_name, group_data) in enumerate(groups):
+                ax = fig.add_subplot(rows, cols, i + 1)
+                scenario_data = group_data[metric]
+                algorithm = group_name[0]  # Get the algorithm name
+                color = algorithm_colors.get(algorithm,
+                                             'tab:blue')  # Get the color from the color palette, default to blue
+                # ax.bar(group_data.index, scenario_data, yerr=scenario_data.std(), capsize=5,
+                #        color=color)  # Use index instead of 'Scenario'
+                boxprops = dict(color=color, linewidth=2)  # Set color and line width for the boxplot lines
+                ax.boxplot(scenario_data, patch_artist=False, boxprops=boxprops, medianprops=boxprops)
+                ax.set_ylabel(metric)
+                ax.set_title(f'{group_name[0]} - {group_name[1]} - {group_name[2]}')  # Set subplot title
+                # ax.tick_params(axis='x', rotation=45)  # Rotate x-axis labels
+                ax.set_xticks([])  # Remove x-ticks
+                ax.grid(True)
+
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to accommodate the main title
+            plt.savefig('./results/'+f'{metric}.png')  # Save plot as PNG file for the current metric with error bars
+            # plt.show()
