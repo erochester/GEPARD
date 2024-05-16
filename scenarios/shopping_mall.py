@@ -21,7 +21,7 @@ class ShoppingMall:
         """
         self.list_of_users = list_of_users
         self.iot_device = iot_device
-        # TODO: The radius of the shopping mall is assumed to be 120 meters
+        # The radius of the shopping mall is assumed to be 120 meters
         self.radius = 120
 
     def generate_scenario(self, dist):

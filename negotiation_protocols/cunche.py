@@ -7,7 +7,7 @@ import sys
 
 class Cunche:
     """
-    Implements Cunche negotiation algorithm. Includes BLE, ZigBee and LoRa based negotiations.
+    Implements Cunche negotiation protocol. Includes BLE, ZigBee and LoRa based negotiations.
     """
 
     def __init__(self, network):
@@ -269,6 +269,11 @@ class Cunche:
             else:
                 print("Invalid consent value in cunche.py.")
                 sys.exit(1)
+
+        voltage = 3.3  # We assume that BLE devices operate at 3.3V
+        # convert from As to Ws
+        total_user_power_consumption = total_user_power_consumption * voltage
+        total_owner_power_consumption = total_owner_power_consumption * voltage
 
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 

@@ -111,7 +111,7 @@ class BLEDiscovery:
         :param ds: Scan window [s]
         :param phi: Offset of the first scan event (n=0) from the beginning of the scanning process
         :param rho_max: Maximum advertising delay [s]. Should be 10 ms according to the BLE specification
-        :param max_time: The maxmimum discovery latency possible. After that, the algorithm stops due to performance reasons
+        :param max_time: The maximum discovery latency possible. After that, the algorithm stops due to performance reasons
         :return: Discovery latency and the discovery energy spent by the advertiser and the scanner
         """
         result = DiscoveryModelResult()

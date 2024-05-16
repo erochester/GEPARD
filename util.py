@@ -15,11 +15,10 @@ def calc_utility(time, energy, weights):
     :param weights: Represents the importance of time left vs power consumption.
     :return: Estimated utility.
     """
-    # TODO: we do not account for weight coefficients.
     k = 100  # scaling factor
 
-    # utility = k * (weights[0] * np.log(1+time)/np.log(1+energy))
-    utility = k * np.log(1 + time) / np.log(1 + energy)
+    utility = k * (weights[0] * np.log(1+time)/np.log(1+energy))
+    # utility = k * np.log(1 + time) / np.log(1 + energy) # alternative method for unweighted utility calculations
 
     return utility
 
@@ -111,7 +110,7 @@ def write_results(filename, rows):
 
         # Write the column headers only if the file is newly created
         if mode == "w":
-            fields = ["Algorithm", "Network", "Scenario", "Total User Power Consumption (W)",
+            fields = ["Protocol", "Network", "Scenario", "Total User Power Consumption (W)",
                       "Total Owner Power Consumption (W)", "Total User Time Spent (s)", "Total Owner Time Spent (s)",
                       "Consent collected from", "Total user number",
                       "Consent Percentage (%)", "Total runtime (min)", "Average User Utility", "Total Owner Utility"]

@@ -22,7 +22,7 @@ df = pd.read_csv(file_path)
 # replace 'Average User Utility' and 'Total User Power Consumption (kWh)' with the column names you want to analyze
 for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power Consumption (W)',
             'Total User Time Spent (s)']:
-    formula = f"Q(\'{col}\') ~ Network + Algorithm + Scenario + Network:Algorithm + Network:Scenario + Algorithm:Scenario"
+    formula = f"Q(\'{col}\') ~ Network + Protocol + Scenario + Network:Protocol + Network:Scenario + Protocol:Scenario"
     model = smf.ols(formula=formula, data=df).fit()
 
     # compute the ANOVA table to get the sum of squares for each factor and factor combination
@@ -32,11 +32,11 @@ for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power 
     # compute the proportion of variation explained by each factor and factor combination
     variation_prop = {
         'Network': anova_table.loc['Network', 'sum_sq'] / sst,
-        'Algorithm': anova_table.loc['Algorithm', 'sum_sq'] / sst,
+        'Protocol': anova_table.loc['Protocol', 'sum_sq'] / sst,
         'Scenario': anova_table.loc['Scenario', 'sum_sq'] / sst,
-        'Network:Algorithm': anova_table.loc['Network:Algorithm', 'sum_sq'] / sst,
+        'Network:Protocol': anova_table.loc['Network:Protocol', 'sum_sq'] / sst,
         'Network:Scenario': anova_table.loc['Network:Scenario', 'sum_sq'] / sst,
-        'Algorithm:Scenario': anova_table.loc['Algorithm:Scenario', 'sum_sq'] / sst
+        'Protocol:Scenario': anova_table.loc['Protocol:Scenario', 'sum_sq'] / sst
     }
 
     # sort the proportion of variation dictionary by values

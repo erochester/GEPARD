@@ -1,18 +1,18 @@
 <simulation>
-  <runs>10</runs>
+  <runs>3</runs>
   <networks>
-    <network>ble</network>
+<!--    <network>ble</network>-->
     <network>zigbee</network>
     <network>lora</network>
   </networks>
   <scenarios>
     <scenario>university</scenario>
     <scenario>hospital</scenario>
-    <scenario>shopping_mall</scenario>
+<!--    <scenario>shopping_mall</scenario>-->
   </scenarios>
-  <algorithms>
-    <algorithm>alanezi</algorithm>
-    <algorithm>cunche</algorithm>
-    <algorithm>concession</algorithm>
-  </algorithms>
+  <protocols>
+    <protocol>alanezi</protocol>
+    <protocol>cunche</protocol>
+    <protocol>concession</protocol>
+  </protocols>
 </simulation>

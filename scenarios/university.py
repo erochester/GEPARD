@@ -20,7 +20,7 @@ class University:
         """
         self.list_of_users = list_of_users
         self.iot_device = iot_device
-        # TODO: The university radius is assumed to be the middle ground, i.e., 80 meters
+        # The university radius is assumed to be the middle ground, i.e., 80 meters
         self.radius = 80
 
     def generate_scenario(self, dist):
@@ -30,8 +30,9 @@ class University:
         :param dist: Distribution used to generate user inter-arrival events.
         """
         # Assume university times to be 9 am to 5 pm
-        last_arrival = 8 * 60
-
+        # last_arrival = 8 * 60
+        # FIXME: testing small number of users
+        last_arrival = 2
         # Based on:
         # https://web.archive.org/web/20150216063946id_/http://people.cs.umass.edu:80/~yungchih/publication/Infocom_mobility_queue.pdf
         # The arrival rate between 9 am and 5 pm is the most stable at university

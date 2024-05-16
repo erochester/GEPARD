@@ -30,7 +30,6 @@ class LoRa:
         :return: Returns power and time consumption (W and s).
         """
         # determine lora mode to use
-        # TODO: adding 12 bytes as an overhead per packet
         self.determine_mode(payload)
         # How many packets to send
         packet_num = math.ceil(payload / self.lora_max_payload)
@@ -62,9 +61,8 @@ class LoRa:
         :param payload: Payload size to receive (bytes)
         :return: Returns power and time consumption (W and s).
         """
-        # TODO: there is no difference between send and receive
+        # Note that there is practically no difference between send and receive
         # determine lora mode to use
-        # TODO: adding 12 bytes as an overhead per packet
         self.determine_mode(payload)
         # How many packets to send
         packet_num = math.ceil(payload / self.lora_max_payload)

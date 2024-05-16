@@ -7,7 +7,7 @@ import sys
 
 class Alanezi:
     """
-    Implements Alanezi negotiation algorithm. Includes BLE, ZigBee and LoRa based negotiations.
+    Implements Alanezi negotiation protocol. Includes BLE, ZigBee and LoRa based negotiations.
     """
 
     def __init__(self, network):
@@ -30,27 +30,24 @@ class Alanezi:
         user_consent = []
         user_consent_obj = []
 
-        # FIXME: For now we assume 217 and 639 bytes the sizes of PP (should be dynamic?)
+        # As per the original work, we assume 217 and 639 bytes the sizes of PP
+        # Can be changed to dynamic sizing (create real PPs and collect their size)
         user_pp_size = 217
         owner_pp_size = 639
 
         # FIXME: for now we assume that the IoT owner precisely knows the user's privacy preferences and
-        #  what to offer to them
-        # we can add the estimator further down the line
-        # for now we go through the list of users, offer to them the privacy policies and
-        # see if they consent and if it is
-        # after 1 phase or 2 phases
+        #  what to offer to them. We can add the estimator further down the line
+        #  for now we go through the list of users, offer to them the privacy policies and
+        #  see if they consent and if it is after 1 phase or 2 phases
 
         # first we define the values for privacy dimensions for different policies
         privacy_dim = [(3, 3, 1, 1), (3, 3, 1, 0), (3, 2, 1, 0), (3, 2, 0, 0)]
         # these are used in calculating utility when offering PP to a user
 
-        # FIXME: change to be dependant on communication technology
-        # remove users that are > x m away from IoT device (outside of the communication range, but not sensing)
-        # 40 meters for BLE
+        # remove users that are > x m away from IoT device (outside the communication range, but not sensing)
+        # For example, 50 meters for BLE
 
         applicable_users = []
-        # TODO: make distance network dependent
         distance = self.network.network_impl.comm_distance
         for u in curr_users_list:
             if check_distance(u.curr_loc, distance):
@@ -264,7 +261,8 @@ class Alanezi:
 
             # Note that we assume that there is no delay between connection establishment and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it
-            # FIXME: for now we assume that the user reply is same size as its initial PP size
+            # We assume that the user reply is same size as its initial PP size
+            # FIXME: should be the received PP if accepted
             # we call from master point of view because it has Tx first and then Rx which better simulates the behaviour
             time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
                                                                                                   [user_pp_size],
@@ -281,6 +279,11 @@ class Alanezi:
                                                                                                  [owner_pp_size],
                                                                                                  [user_pp_size], 3)
             total_user_power_consumption += power_spent
+
+        voltage = 3.3  # We assume that BLE devices operate at 3.3V
+        # convert from As to Ws
+        total_user_power_consumption = total_user_power_consumption * voltage
+        total_owner_power_consumption = total_owner_power_consumption * voltage
 
         return (total_user_power_consumption, total_owner_power_consumption, total_user_time_spent,
                 total_owner_time_spent)
@@ -353,7 +356,8 @@ class Alanezi:
 
             # Note that we assume that there is no delay between association and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it
-            # FIXME: for now we assume that the user reply is same size as its initial PP size
+            # We assume that the user reply is same size as its initial PP size
+            # FIXME: should be the received PP if accepted
             charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
             charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
@@ -408,6 +412,7 @@ class Alanezi:
         # if negotiation is 2 phases
         if u == 2:
             # TODO: For acceptance user replies with its original PP for now
+            # FIXME: should be the received PP if accepted
             # in 2 phase negotiation we start exactly the same way as in 1 phase
             # however now the owner responds with an alternative proposal and waits for the user to reply
             # so two more steps are added

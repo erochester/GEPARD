@@ -21,7 +21,7 @@ class ResultProcessor:
         filename = "./results/results.csv"
 
         # Define dictionaries to store the data
-        algorithms = {}
+        protocols = {}
         networks = {}
         scenarios = {}
 
@@ -29,7 +29,7 @@ class ResultProcessor:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 # Extract the fields from the row
-                algorithm = row["Algorithm"]
+                protocol = row["Protocol"]
                 network = row["Network"]
                 scenario = row["Scenario"]
                 user_power = float(row["Total User Power Consumption (W)"])
@@ -42,19 +42,19 @@ class ResultProcessor:
                 owner_utility = float(row["Total Owner Utility"])
 
                 # Update the dictionaries
-                if algorithm not in algorithms:
-                    algorithms[algorithm] = {}
+                if protocol not in protocols:
+                    protocols[protocol] = {}
                 if network not in networks:
                     networks[network] = {}
                 if scenario not in scenarios:
                     scenarios[scenario] = {}
 
-                if network not in algorithms[algorithm]:
-                    algorithms[algorithm][network] = {}
-                if scenario not in algorithms[algorithm][network]:
-                    algorithms[algorithm][network][scenario] = []
+                if network not in protocols[protocol]:
+                    protocols[protocol][network] = {}
+                if scenario not in protocols[protocol][network]:
+                    protocols[protocol][network][scenario] = []
 
-                algorithms[algorithm][network][scenario].append({
+                protocols[protocol][network][scenario].append({
                     "user_power": user_power,
                     "owner_power": owner_power,
                     "user_time": user_time,
@@ -68,7 +68,7 @@ class ResultProcessor:
         with open('./results/statistics.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(
-                ['Algorithm', 'Network', 'Scenario', 'Avg User Power', 'Min User Power', 'Max User Power',
+                ['Protocol', 'Network', 'Scenario', 'Avg User Power', 'Min User Power', 'Max User Power',
                  'Std User Power',
                  'Avg Owner Power', 'Min Owner Power', 'Max Owner Power', 'Std Owner Power',
                  'Avg User Time', 'Min User Time', 'Max User Time', 'Std User Time',
@@ -81,28 +81,28 @@ class ResultProcessor:
 
             # Find the combination with the lowest power consumption, highest user consent, and least time taken
             min_power = float("inf")
-            best_algorithm = ""
+            best_protocol = ""
             best_network = ""
             best_scenario = ""
 
             max_consent_test = 0
-            best_algorithm_consent = ""
+            best_protocol_consent = ""
             best_network_consent = ""
             best_scenario_consent = ""
 
             min_time = float("inf")
-            best_algorithm_time = ""
+            best_protocol_time = ""
             best_network_time = ""
             best_scenario_time = ""
 
             max_user_utility_test = 0
-            best_algorithm_utility = ""
+            best_protocol_utility = ""
             best_network_utility = ""
             best_scenario_utility = ""
 
-            # Calculate the statistics for each combination of algorithm, network, and scenario
-            for algorithm, algorithm_data in algorithms.items():
-                for network, network_data in algorithm_data.items():
+            # Calculate the statistics for each combination of protocol, network, and scenario
+            for protocol, protocol_data in protocols.items():
+                for network, network_data in protocol_data.items():
                     for scenario, scenario_data in network_data.items():
                         user_power = [data["user_power"] for data in scenario_data]
                         owner_power = [data["owner_power"] for data in scenario_data]
@@ -125,25 +125,25 @@ class ResultProcessor:
 
                         if min(avg_user_current, avg_owner_current) < min_power:
                             min_power = min(avg_user_current, avg_owner_current)
-                            best_algorithm = algorithm
+                            best_protocol = protocol
                             best_network = network
                             best_scenario = scenario
 
                         if avg_consent > max_consent_test:
                             max_consent_test = avg_consent
-                            best_algorithm_consent = algorithm
+                            best_protocol_consent = protocol
                             best_network_consent = network
                             best_scenario_consent = scenario
 
                         if min(avg_user_time, avg_owner_time) < min_time:
                             min_time = min(avg_user_time, avg_owner_time)
-                            best_algorithm_time = algorithm
+                            best_protocol_time = protocol
                             best_network_time = network
                             best_scenario_time = scenario
 
                         if avg_user_utility > max_user_utility_test:
                             max_user_utility_test = avg_user_utility
-                            best_algorithm_utility = algorithm
+                            best_protocol_utility = protocol
                             best_network_utility = network
                             best_scenario_utility = scenario
 
@@ -176,7 +176,7 @@ class ResultProcessor:
 
                         # Write the data to the file
                         writer.writerow(
-                            [algorithm, network, scenario, avg_user_current, min_user_current, max_user_current,
+                            [protocol, network, scenario, avg_user_current, min_user_current, max_user_current,
                              std_user_current,
                              avg_owner_current, min_owner_current, max_owner_current, std_owner_current, avg_user_time,
                              min_user_time, max_user_time, std_user_time, avg_owner_time, min_owner_time,
@@ -191,7 +191,7 @@ class ResultProcessor:
             with open('./results/top_performers.txt', 'w') as f:
                 # Write the combination with the least power consumption to the file
                 f.write("The combination with the least power consumption is:\n")
-                f.write(f"Algorithm: {best_algorithm}\n")
+                f.write(f"Protocol: {best_protocol}\n")
                 f.write(f"Network: {best_network}\n")
                 f.write(f"Scenario: {best_scenario}\n")
                 f.write(f"Power Consumption: {min_power:.2f}\n")
@@ -199,7 +199,7 @@ class ResultProcessor:
 
                 # Write the combination with the highest user consent to the file
                 f.write("The combination with the highest user consent is:\n")
-                f.write(f"Algorithm: {best_algorithm_consent}\n")
+                f.write(f"Protocol: {best_protocol_consent}\n")
                 f.write(f"Network: {best_network_consent}\n")
                 f.write(f"Scenario: {best_scenario_consent}\n")
                 f.write(f"User Consent: {max_consent_test:.2f}\n")
@@ -207,7 +207,7 @@ class ResultProcessor:
 
                 # Write the combination with the least time taken to the file
                 f.write("The combination with the least time taken is:\n")
-                f.write(f"Algorithm: {best_algorithm_time}\n")
+                f.write(f"Protocol: {best_protocol_time}\n")
                 f.write(f"Network: {best_network_time}\n")
                 f.write(f"Scenario: {best_scenario_time}\n")
                 f.write(f"Time Taken: {min_time:.2f}\n")
@@ -215,7 +215,7 @@ class ResultProcessor:
 
                 # Write the combination with the highest user utility to the file
                 f.write("The combination with the highest user utility is:\n")
-                f.write(f"Algorithm: {best_algorithm_utility}\n")
+                f.write(f"Protocol: {best_protocol_utility}\n")
                 f.write(f"Network: {best_network_utility}\n")
                 f.write(f"Scenario: {best_scenario_utility}\n")
                 f.write(f"User Utility: {max_user_utility_test:.2f}\n")
@@ -231,22 +231,22 @@ class ResultProcessor:
         # Read data from CSV file
         df = pd.read_csv('./results/results.csv')
 
-        # Group data by Algorithm, Network, and Scenario
-        groups = df.groupby(['Algorithm', 'Network', 'Scenario'])
+        # Group data by Protocol, Network, and Scenario
+        groups = df.groupby(['Protocol', 'Network', 'Scenario'])
 
         # Define the metrics you want to plot
         metrics = ['Total User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Total User Time Spent (s)',
                    'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'Average User Utility',
                    'Total Owner Utility']
 
-        # Get the number of unique algorithms
-        num_algorithms = len(df['Algorithm'].unique())
+        # Get the number of unique protocols
+        num_protocols = len(df['Protocol'].unique())
 
-        # Generate a color map with the number of colors equal to the number of unique algorithms
-        colors = cm.tab10.colors[:num_algorithms]
+        # Generate a color map with the number of colors equal to the number of unique protocols
+        colors = cm.tab10.colors[:num_protocols]
 
-        # Create a dictionary mapping each algorithm to a color
-        algorithm_colors = dict(zip(df['Algorithm'].unique(), colors))
+        # Create a dictionary mapping each protocol to a color
+        protocol_colors = dict(zip(df['Protocol'].unique(), colors))
 
         # Iterate over each metric
         for metric in metrics:
@@ -263,17 +263,18 @@ class ResultProcessor:
             fig = plt.figure(figsize=(fig_width, fig_height))
             fig.suptitle(metric, fontsize=16)  # Set the figure title to the metric
 
-            # Iterate over each group and create a subplot for each combination of scenario-algorithm-network
+            # Iterate over each group and create a subplot for each combination of scenario-protocol-network
             for i, (group_name, group_data) in enumerate(groups):
                 ax = fig.add_subplot(rows, cols, i + 1)
                 scenario_data = group_data[metric]
-                algorithm = group_name[0]  # Get the algorithm name
-                color = algorithm_colors.get(algorithm,
+                protocol = group_name[0]  # Get the protocol name
+                color = protocol_colors.get(protocol,
                                              'tab:blue')  # Get the color from the color palette, default to blue
                 # ax.bar(group_data.index, scenario_data, yerr=scenario_data.std(), capsize=5,
                 #        color=color)  # Use index instead of 'Scenario'
                 boxprops = dict(color=color, linewidth=2)  # Set color and line width for the boxplot lines
-                ax.boxplot(scenario_data, patch_artist=False, boxprops=boxprops, medianprops=boxprops)
+                mediaprops = dict(color='red', linewidth=3)
+                ax.boxplot(scenario_data, patch_artist=False, boxprops=boxprops, medianprops=mediaprops)
                 ax.set_ylabel(metric)
                 ax.set_title(f'{group_name[0]} - {group_name[1]} - {group_name[2]}')  # Set subplot title
                 # ax.tick_params(axis='x', rotation=45)  # Rotate x-axis labels

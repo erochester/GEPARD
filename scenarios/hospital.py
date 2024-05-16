@@ -20,7 +20,7 @@ class Hospital:
         """
         self.list_of_users = list_of_users
         self.iot_device = iot_device
-        # TODO: The hospital radius is assumed to be the smallest, i.e., 40 meters
+        # The hospital radius is assumed to be the smallest, i.e., 40 meters (example of emergency room)
         self.radius = 40
 
     def generate_scenario(self, dist):
@@ -30,7 +30,9 @@ class Hospital:
         :param dist: Distribution used to generate user inter-arrival events.
         """
         # The hospital works 24/7
-        last_arrival = 24 * 60
+        # last_arrival = 24 * 60
+        # FIXME: testing small number of users
+        last_arrival = 30
 
         # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
         lmbd = 0.1584

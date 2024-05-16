@@ -6,7 +6,7 @@ import sys
 
 class Concession:
     """
-    Implements Concession negotiation algorithm. Includes BLE, ZigBee and LoRa based negotiations.
+    Implements Concession negotiation protocol. Includes BLE, ZigBee and LoRa based negotiations.
     """
     def __init__(self, network):
         """
@@ -210,6 +210,11 @@ class Concession:
                                                                                                  [owner_pp_size],
                                                                                                  [user_pp_size], 3)
             total_user_power_consumption += power_spent
+
+        voltage = 3.3  # We assume that BLE devices operate at 3.3V
+        # convert from As to Ws
+        total_user_power_consumption = total_user_power_consumption * voltage
+        total_owner_power_consumption = total_owner_power_consumption * voltage
 
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
 

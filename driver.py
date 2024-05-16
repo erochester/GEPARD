@@ -10,7 +10,7 @@ class Driver:
         """
         Initializes the driver class.
         :param scenario: Scenario to be simulated.
-        :param negotiation_protocol: Negotiation protocol/algorithm to be used.
+        :param negotiation_protocol: Negotiation protocol to be used.
         :param logger: Logger object.
         """
         self.scenario = scenario

@@ -35,8 +35,7 @@ class ZigBee:
         Used to account for association process power and time consumptions.
         :return: Power and time consumed (W and s).
         """
-        # FIXME: We simplify association modelling by assuming that Coordinator consumes same amount
-        #  of power and time and mote
+        # We simplify association modelling by assuming that Coordinator consumes same amount of power and time as mote
 
         # Scanning in 1 channel
         total_power_consumed = 26.6 * self.voltage  # mW
