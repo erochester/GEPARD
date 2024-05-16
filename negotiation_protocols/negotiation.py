@@ -6,10 +6,10 @@ import sys
 
 class NegotiationProtocol:
     """
-    Metaclass for Negotiation Protocols. Used to unify and call different negotiation protocols/algorithms.
+    Metaclass for Negotiation Protocols. Used to unify and call different negotiation protocols.
     """
-    def __init__(self, algo, network, logger):
-        self.algo = algo
+    def __init__(self, protocol, network, logger):
+        self.protocol = protocol
         self.network = network
         self.logger = logger
 
@@ -20,13 +20,13 @@ class NegotiationProtocol:
         :param iot_device: IoT device object.
         :return: Returns the calculated power and time consumption for users and IoT device.
         """
-        if self.algo == "alanezi":
+        if self.protocol == "alanezi":
             alanezi = Alanezi(self.network)
             return alanezi.run(list_of_users, iot_device)
-        elif self.algo == "cunche":
+        elif self.protocol == "cunche":
             cunche = Cunche(self.network)
             return cunche.run(list_of_users, iot_device)
-        elif self.algo == "concession":
+        elif self.protocol == "concession":
             concession = Concession(self.network)
             return concession.run(list_of_users, iot_device)
         else:
