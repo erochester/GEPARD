@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import statsmodels.formula.api as smf
 import statsmodels.stats.anova as sma
+import logging
 
 """
 Calculates the relative proportion of variation over the tournament results 
@@ -13,7 +14,7 @@ file_path = input("Enter file path to results file (.csv): ")
 
 # Check if file exists
 if not os.path.isfile(file_path):
-    print("File not found. Exiting...")
+    logging.error("File not found. Exiting...")
     exit()
 
 # Read in the CSV file
@@ -42,7 +43,7 @@ for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power 
     # sort the proportion of variation dictionary by values
     sorted_variation_prop = sorted(variation_prop.items(), key=lambda x: x[1], reverse=True)
 
-    print(col)
+    logging.info(col)
     for factor, prop in sorted_variation_prop:
-        print(f"Proportion of variation - {factor}: {prop}")
-    print("------------------------")
+        logging.info(f"Proportion of variation - {factor}: {prop}")
+    logging.info("------------------------")

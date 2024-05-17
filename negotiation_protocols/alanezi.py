@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 from util import check_distance, calc_utility, calc_time_remaining
 import random
 import sys
+import logging
 
 
 class Alanezi:
@@ -35,7 +36,7 @@ class Alanezi:
         user_pp_size = 217
         owner_pp_size = 639
 
-        # FIXME: for now we assume that the IoT owner precisely knows the user's privacy preferences and
+        # For now, we assume that the IoT owner precisely knows the user's privacy preferences and
         #  what to offer to them. We can add the estimator further down the line
         #  for now we go through the list of users, offer to them the privacy policies and
         #  see if they consent and if it is after 1 phase or 2 phases
@@ -180,7 +181,7 @@ class Alanezi:
              curr_owner_time_spent) = self.lora_negotiation(user_pp_size, owner_pp_size, u)
         else:
             # raise error and exit
-            print("Invalid network type in concession.py.")
+            logging.error("Invalid network type in concession.py.")
             sys.exit(1)
 
         # Calculate user and owner utility
@@ -223,12 +224,9 @@ class Alanezi:
         total_user_power_consumption += charge_c
         total_owner_power_consumption += charge_c
 
-        # print duration and charge of constant parts
-        # print("Duration of constant parts: ", dc)
-        # print("Charge of constant parts: ", charge_c)
-
         # Calculate the latency and energy consumption of device discovery. The values are taken from:
         # https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
+        # the discovery includes PP exchange as the first round
         result = (self.network.network_impl.discovery.ble_model_discovery_get_result_alanezi
                   (100, 0.9999, 0.25, 5, 2, 0.01, 1000, user_pp_size))
 
@@ -252,6 +250,7 @@ class Alanezi:
              0.1))
 
         # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
+        # exchanged during device discovery phase
 
         # if negotiation is 2 phases
         if u == 2:
@@ -261,23 +260,18 @@ class Alanezi:
 
             # Note that we assume that there is no delay between connection establishment and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it
-            # We assume that the user reply is same size as its initial PP size
-            # FIXME: should be the received PP if accepted
+            # We assume that the user reply is the received PP
             # we call from master point of view because it has Tx first and then Rx which better simulates the behaviour
             time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
-                                                                                                  [user_pp_size],
+                                                                                                  [owner_pp_size],
                                                                                                   [owner_pp_size], 3)
             total_user_time_spent += time_spent
             total_owner_time_spent += time_spent
 
             power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
-                                                                                                 [user_pp_size],
+                                                                                                 [owner_pp_size],
                                                                                                  [owner_pp_size], 3)
             total_owner_power_consumption += power_spent
-
-            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
-                                                                                                 [owner_pp_size],
-                                                                                                 [user_pp_size], 3)
             total_user_power_consumption += power_spent
 
         voltage = 3.3  # We assume that BLE devices operate at 3.3V
@@ -347,6 +341,7 @@ class Alanezi:
         total_owner_power_consumption += charge_tx
 
         # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
+        # the PP exchange occurred during device discovery
 
         # if negotiation is 2 phases
         if u == 2:
@@ -356,8 +351,7 @@ class Alanezi:
 
             # Note that we assume that there is no delay between association and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it
-            # We assume that the user reply is same size as its initial PP size
-            # FIXME: should be the received PP if accepted
+            # We assume that the user reply is the received PP
             charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
             charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
@@ -411,8 +405,6 @@ class Alanezi:
 
         # if negotiation is 2 phases
         if u == 2:
-            # TODO: For acceptance user replies with its original PP for now
-            # FIXME: should be the received PP if accepted
             # in 2 phase negotiation we start exactly the same way as in 1 phase
             # however now the owner responds with an alternative proposal and waits for the user to reply
             # so two more steps are added
@@ -429,11 +421,11 @@ class Alanezi:
             total_owner_power_consumption += power_rx
 
             # Acceptance
-            # LoRa device (user) sends its request to the Gateway (owner)
-            power_tx, d_tx = self.network.network_impl.send(user_pp_size)
+            # LoRa device (user) sends back the same PP it received
+            power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
 
             # Gateway reception
-            power_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+            power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
             total_user_time_spent += d_tx
             total_owner_time_spent += d_rx

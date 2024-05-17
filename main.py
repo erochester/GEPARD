@@ -1,5 +1,6 @@
 import argparse
 import logging
+from logging_module import setup_logging
 import random
 from xml.etree.ElementTree import parse
 
@@ -38,19 +39,19 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
     # Generates the users/PAs
     scenario = Scenario(scenario_name, list_of_users, iot_device)
     scenario.generate_scenario(dist)
-    print("Number of users: ", len(scenario.list_of_users))
+    logging.debug("Number of users: %s", len(scenario.list_of_users))
 
     # plot user locations
     # uncomment if you want to plot the IoT area with user arrival/departure locations and trajectories
     # scenario.plot_scenario()
 
     # network technology that determines the range of communication, power consumed and allowed data rates
-    network = Network(network_type, logger)
+    network = Network(network_type)
 
     # create the negotiation protocol object that determines the rules of the encounter
-    negotiation_protocol = NegotiationProtocol(protocol, network, logger)
+    negotiation_protocol = NegotiationProtocol(protocol, network)
 
-    driver = Driver(scenario, negotiation_protocol, logger)
+    driver = Driver(scenario, negotiation_protocol)
 
     total_consented, total_user_power_consumption, total_owner_power_consumption, \
         total_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
@@ -85,20 +86,10 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
 
 
 if __name__ == "__main__":
-    # Create and configure logger
-    logging.basicConfig(filename="debug.log", format='%(asctime)s %(message)s', filemode='w')
-    # Creating an object
-    logger = logging.getLogger()
-
-    # Setting the threshold of logger to DEBUG
-    logger.setLevel(logging.DEBUG)
 
     msg = "GEPARD environment. Please provide -p, -s and -n arguments to setup protocol, scenario and network type."
     # Initialize parser
     parser = argparse.ArgumentParser(description=msg)
-
-    filename = "./results/results.csv"
-    result_file_util(filename)
 
     # Adding optional argument
     parser.add_argument("-p", "--protocol", help="Negotiation protocol to use, e.g., alanezi")
@@ -106,9 +97,16 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--scenario", help="Scenario to use, e.g., shopping_mall")
     parser.add_argument("-t", "--tournament", help="Tournament-styled testing", action='store_true')
     parser.add_argument("-d", "--distribution", help="Distribution to use, e.g., poisson")
+    parser.add_argument("-v", "--verbose", help="Enable verbose output", action="store_true")
 
     # Read arguments from command line
     args = parser.parse_args()
+
+    # Set up logging
+    setup_logging(verbose=args.verbose)
+
+    filename = "./results/results.csv"
+    result_file_util(filename)
 
     if not args.distribution:
         distribution_type = "poisson"
@@ -134,22 +132,22 @@ if __name__ == "__main__":
                         # use run number for seed
                         random.seed(i + 1)
                         # Run your code here with the current combination of protocol, network, and scenario
-                        print(f"Run {i + 1} of {runs} for protocol {protocol}, network {network}, "
+                        logging.info(f"Run {i + 1} of {runs} for protocol {protocol}, network {network}, "
                               f"and scenario {scenario}")
                         main(scenario, network, protocol, filename, distribution_type)
     else:
         if not args.protocol or not args.network or not args.scenario:
-            parser.error("[!] Please provide -a, -s and -n arguments to setup protocol, scenario and network type.")
+            parser.error("Please provide -a, -s and -n arguments to setup protocol, scenario and network type.")
             exit(1)
         protocol = args.protocol
-        print("[!] Protocol: ", protocol)
+        logging.info("Protocol: %s", protocol)
         network_type = args.network
-        print("[!] Network: ", network_type)
+        logging.info("Network: %s", network_type)
         scenario_name = args.scenario
-        print("[!] Scenario: ", scenario_name)
+        logging.info("Scenario: %s", scenario_name)
         main(scenario_name, network_type, protocol, filename, distribution_type)
 
-    print("Processing Results!")
+    logging.info("Processing Results!")
     # Process results
     result_processor = ResultProcessor()
     result_processor.process_results()

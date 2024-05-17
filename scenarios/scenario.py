@@ -2,7 +2,7 @@ from scenarios.shopping_mall import ShoppingMall
 from scenarios.hospital import Hospital
 from scenarios.university import University
 import sys
-
+import logging
 
 class Scenario:
     """
@@ -18,7 +18,7 @@ class Scenario:
         elif scenario == "university":
             self.scenario = University(list_of_users, iot_device)
         else:
-            print("Scenario not supported")
+            logging.error("Scenario not supported")
             sys.exit(1)
 
     def generate_scenario(self, distribution):

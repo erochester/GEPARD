@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 from util import check_distance, calc_utility, calc_time_remaining
 import random
 import sys
+import logging
 
 
 class Cunche:
@@ -156,7 +157,7 @@ class Cunche:
              curr_owner_time_spent) = self.lora_negotiation(user_pp_size, owner_pp_size, u)
         else:
             # raise error and exit
-            print("Invalid network type in concession.py.")
+            logging.error("Invalid network type in concession.py.")
             sys.exit(1)
 
         # Calculate user and owner utility
@@ -170,7 +171,8 @@ class Cunche:
         iot_device.update_utility(iot_device.utility + owner_utility)
 
         # Return the local results
-        return curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent, user_utility, owner_utility
+        return (curr_user_power_consumption, curr_user_time_spent, curr_owner_power_consumption, curr_owner_time_spent,
+                user_utility, owner_utility)
 
     def ble_negotiation(self, user_pp_size, owner_pp_size, u):
         """
@@ -224,41 +226,68 @@ class Cunche:
 
             # the owner (slave) sends PP to the user (master)
             time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,
-                                                                                                  [user_pp_size],
+                                                                                                  [0],
                                                                                                   [owner_pp_size], 3)
 
             total_owner_time_spent += time_spent
 
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
+                                                                                                 [0],
+                                                                                                 [owner_pp_size],
+                                                                                                 3)
+            total_owner_power_consumption += power_spent
+
+            # user receives the PP of the owner
+
+            time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,
+                                                                                                 [owner_pp_size],
+                                                                                                 [0], 3)
+            total_user_time_spent += time_spent
+
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
+                                                                                                 [owner_pp_size],
+                                                                                                 [0],
+                                                                                                 3)
+            total_user_power_consumption += power_spent
+
             if u == 1:
                 # user sends the consent to the owner
+                # indicated by reply of the same PP as received
                 time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
                                                                                                       [0],
-                                                                                                      [user_pp_size], 3)
+                                                                                                      [owner_pp_size], 3)
 
                 total_user_time_spent += time_spent
 
                 power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
-                                                                                                     [user_pp_size],
+                                                                                                     [owner_pp_size],
                                                                                                      [0], 3)
                 total_owner_power_consumption += power_spent
 
                 power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
-                                                                                                     [user_pp_size],
-                                                                                                     [user_pp_size], 3)
+                                                                                                     [owner_pp_size],
+                                                                                                     [owner_pp_size], 3)
                 total_user_power_consumption += power_spent
 
             elif u == 2:
-                # user forwards PP to the iot
+                # user forwards its PP to the iot
                 # the owner then forwards "modified" PP to the user
-                # TODO: this is not implemented yet, so we just assume it is the same as the PP sent to the user
+                # we just assume it is the same as the PP sent to the user
                 time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
                                                                                                       [owner_pp_size],
                                                                                                       [user_pp_size], 3)
                 total_user_time_spent += time_spent
 
+                time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                      [user_pp_size],
+                                                                                                      [owner_pp_size],
+                                                                                                      3)
+                total_owner_time_spent += time_spent
+
                 power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
                                                                                                      [user_pp_size],
-                                                                                                     [owner_pp_size], 3)
+                                                                                                     [owner_pp_size],
+                                                                                                     3)
                 total_owner_power_consumption += power_spent
 
                 power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
@@ -267,7 +296,7 @@ class Cunche:
                 total_user_power_consumption += power_spent
 
             else:
-                print("Invalid consent value in cunche.py.")
+                logging.error("Invalid consent value in cunche.py.")
                 sys.exit(1)
 
         voltage = 3.3  # We assume that BLE devices operate at 3.3V
@@ -318,11 +347,30 @@ class Cunche:
             total_user_power_consumption += charge_rx
             total_owner_power_consumption += charge_tx
 
+            # Send ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += charge_tx
+            total_owner_power_consumption += charge_rx
+
             if u == 1:
                 # the mote sends its consent to the Coordinator
+                # indicated by reply of the same PP
 
-                charge_tx, d_tx = self.network.network_impl.send(user_pp_size)
-                charge_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+                charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+                charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+                total_user_time_spent += d_tx
+                total_owner_time_spent += d_rx
+                total_user_power_consumption += charge_tx
+                total_owner_power_consumption += charge_rx
+
+                # Send ACK
+                charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+                charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
 
                 total_user_time_spent += d_tx
                 total_owner_time_spent += d_rx
@@ -339,7 +387,16 @@ class Cunche:
                 total_user_power_consumption += charge_tx
                 total_owner_power_consumption += charge_rx
 
-                # the Coordinator sends the modified PP to the mote
+                # Send ACK
+                charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+                charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+                total_user_time_spent += d_tx
+                total_owner_time_spent += d_rx
+                total_user_power_consumption += charge_tx
+                total_owner_power_consumption += charge_rx
+
+                # the Coordinator sends the "modified" PP to the mote
                 charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
                 charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
@@ -347,8 +404,17 @@ class Cunche:
                 total_owner_time_spent += d_tx
                 total_user_power_consumption += charge_rx
                 total_owner_power_consumption += charge_tx
+
+                # Send ACK
+                charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+                charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+                total_user_time_spent += d_tx
+                total_owner_time_spent += d_rx
+                total_user_power_consumption += charge_tx
+                total_owner_power_consumption += charge_rx
             else:
-                print("Invalid consent value in cunche.py.")
+                logging.info("Invalid consent value in cunche.py.")
                 sys.exit(1)
 
         return total_user_power_consumption, total_owner_power_consumption, total_user_time_spent, total_owner_time_spent
@@ -378,9 +444,9 @@ class Cunche:
             total_owner_power_consumption += power_tx
 
             if u == 1:
-                # the LoRa node replies with consent (user PP)
-                power_tx, d_tx = self.network.network_impl.send(user_pp_size)
-                power_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+                # the LoRa node replies with consent (owner/received PP)
+                power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+                power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
                 total_user_time_spent += d_tx
                 total_owner_time_spent += d_rx
@@ -396,7 +462,8 @@ class Cunche:
                 total_user_power_consumption += power_tx
                 total_owner_power_consumption += power_rx
 
-                # the IoT device replies with modified PP
+                # the IoT device replies with "modified" PP
+                # for now we simply keep it same as owner PP size
                 power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
                 power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
@@ -405,7 +472,7 @@ class Cunche:
                 total_user_power_consumption += power_rx
                 total_owner_power_consumption += power_tx
             else:
-                print("Invalid consent value in cunche.py.")
+                logging.error("Invalid consent value in cunche.py.")
                 sys.exit(1)
 
         return (total_user_power_consumption, total_owner_power_consumption, total_user_time_spent,

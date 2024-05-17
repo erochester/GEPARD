@@ -4,7 +4,7 @@ import os
 import csv
 import random
 import math
-
+import logging
 
 def calc_utility(time, energy, weights):
     """
@@ -74,16 +74,16 @@ def result_file_util(filename):
         # Remove the file
         if choice.lower() == 'r':
             os.remove(filename)
-            print(f"The file {filename} has been removed.")
+            logging.info(f"The file {filename} has been removed.")
         # Back up the file
         elif choice.lower() == 'b':
             backup_filename = filename + '.bak'
             shutil.copyfile(filename, backup_filename)
-            print(f"The file {filename} has been backed up as {backup_filename}.")
+            logging.info(f"The file {filename} has been backed up as {backup_filename}.")
             os.remove(filename)
         # Invalid choice
         else:
-            print("Invalid choice.")
+            logging.error("Invalid choice.")
             exit(1)
 
 
@@ -100,7 +100,7 @@ def write_results(filename, rows):
         if create_dir.lower() == 'y':
             os.makedirs(directory)
         else:
-            print("The directory does not exist. Please create it and try again.")
+            logging.error("The directory does not exist. Please create it and try again.")
             exit(-1)
     # Open a file for writing
     mode = "a" if os.path.exists(filename) else "w"

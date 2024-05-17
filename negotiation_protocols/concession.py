@@ -2,6 +2,7 @@ from util import check_distance, calc_utility, calc_time_remaining
 import random
 import numpy as np
 import sys
+import logging
 
 
 class Concession:
@@ -99,7 +100,7 @@ class Concession:
                      curr_owner_time_spent) = self.lora_negotiation(user_pp_size, owner_pp_size, highest_utility_user)
                 else:
                     # raise error and exit
-                    print("Invalid network type in concession.py.")
+                    logging.info("Invalid network type in concession.py.")
                     sys.exit(1)
 
                 total_owner_power_consumption += curr_owner_power_consumption
@@ -189,7 +190,7 @@ class Concession:
 
             # the owner (slave) sends PP to the user (master)
             time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,
-                                                                                                  [user_pp_size],
+                                                                                                  [owner_pp_size],
                                                                                                   [owner_pp_size], 3)
 
             total_owner_time_spent += time_spent
@@ -197,18 +198,18 @@ class Concession:
             # user sends the consent to the owner
             time_spent = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
                                                                                                   [owner_pp_size],
-                                                                                                  [user_pp_size], 3)
+                                                                                                  [owner_pp_size], 3)
 
             total_user_time_spent += time_spent
 
             power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
-                                                                                                 [user_pp_size],
+                                                                                                 [owner_pp_size],
                                                                                                  [owner_pp_size], 3)
             total_owner_power_consumption += power_spent
 
             power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
                                                                                                  [owner_pp_size],
-                                                                                                 [user_pp_size], 3)
+                                                                                                 [owner_pp_size], 3)
             total_user_power_consumption += power_spent
 
         voltage = 3.3  # We assume that BLE devices operate at 3.3V
@@ -259,10 +260,28 @@ class Concession:
             total_user_power_consumption += charge_rx
             total_owner_power_consumption += charge_tx
 
+            # Send ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += charge_tx
+            total_owner_power_consumption += charge_rx
+
             # the mote sends its consent to the Coordinator
 
-            charge_tx, d_tx = self.network.network_impl.send(user_pp_size)
-            charge_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+            charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            total_user_time_spent += d_tx
+            total_owner_time_spent += d_rx
+            total_user_power_consumption += charge_tx
+            total_owner_power_consumption += charge_rx
+
+            # Send ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
 
             total_user_time_spent += d_tx
             total_owner_time_spent += d_rx
@@ -295,9 +314,9 @@ class Concession:
             total_user_power_consumption += power_rx
             total_owner_power_consumption += power_tx
 
-            # the LoRa node replies with consent (user PP)
-            power_tx, d_tx = self.network.network_impl.send(user_pp_size)
-            power_rx, d_rx = self.network.network_impl.receive(user_pp_size)
+            # the LoRa node replies with consent (same PP)
+            power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
             total_user_time_spent += d_tx
             total_owner_time_spent += d_rx
