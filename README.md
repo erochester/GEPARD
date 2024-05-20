@@ -33,9 +33,9 @@ python3 main.py -p <protocol> -n <network> -s <scenario> [-d <distribution>]
 ```
 python3 main.py -p <protocol> -n <network> -s example_scenario [-d <distribution>]
 ```
-The example scenario support any network technology and negotiation protocol.
+The example scenario supports any network technology and negotiation protocol.
 
-Currently implemented values are:
+_Currently implemented values are_:
 |Protocols|Networks|Scenarios|Distributions|
 |----------|--------|---------|-------------|
 |alanezi|ble|hospital|poisson|
@@ -47,6 +47,9 @@ Currently implemented values are:
 ```
 python3 main.py -t
 ```
+## Results
+
+The results are stored under the _results_ folder.
 
 # Proportion of Variation Analysis
 
