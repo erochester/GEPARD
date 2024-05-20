@@ -44,6 +44,7 @@ _Currently implemented values are_:
 |-|-|example_scenario|-|
 
 2) Tournament-Style Run (make sure to review "tournament_setup.xml" for tournament settings and make appropriate changes).
+
 A tournament-style run is for evaluating different PA designs, involving various network technologies and negotiation protocols across different scenarios.
 ```
 python3 main.py -t
