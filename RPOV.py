@@ -20,15 +20,19 @@ if not os.path.isfile(file_path):
 # Read in the CSV file
 df = pd.read_csv(file_path)
 
-# replace 'Average User Utility' and 'Total User Power Consumption (kWh)' with the column names you want to analyze
+# replace 'Average User Utility' and 'Total User Power Consumption (W)' with the column names you want to analyze
 for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power Consumption (W)',
             'Total User Time Spent (s)']:
     formula = f"Q(\'{col}\') ~ Network + Protocol + Scenario + Network:Protocol + Network:Scenario + Protocol:Scenario"
     model = smf.ols(formula=formula, data=df).fit()
 
     # compute the ANOVA table to get the sum of squares for each factor and factor combination
-    anova_table = sma.anova_lm(model, typ=2)
-    sst = anova_table['sum_sq'].sum()
+    try:
+        anova_table = sma.anova_lm(model, typ=2)
+        sst = anova_table['sum_sq'].sum()
+    except:
+        print("Something went wrong. Probably you want to provide more data/results combinations for this to work!")
+        exit(-1)
 
     # compute the proportion of variation explained by each factor and factor combination
     variation_prop = {
@@ -43,7 +47,7 @@ for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power 
     # sort the proportion of variation dictionary by values
     sorted_variation_prop = sorted(variation_prop.items(), key=lambda x: x[1], reverse=True)
 
-    logging.info(col)
+    print(col)
     for factor, prop in sorted_variation_prop:
-        logging.info(f"Proportion of variation - {factor}: {prop}")
-    logging.info("------------------------")
+        print(f"Proportion of variation - {factor}: {prop}")
+    print("------------------------")
