@@ -35,6 +35,13 @@ Currently implemented values are:
 |alanezi|ble|hospital|poisson|
 |cunche|zigbee|shopping_mall|-|
 |concession|lora|university|-|
+
+Note: We provide _example_scenario_ option and class to test the code with small number of users in the environment, since other scenarios may take long time to run:
+```
+python3 main.py -p <protocol> -n <network> -s example_scenario [-d <distribution>]
+```
+The example scenario support any network technology and negotiation protocol.
+
 2) Tournament-style Run (make sure to review "tournament_setup.xml" for tournament settings and make appropriate changes)
 ```
 python3 main.py -t
@@ -55,3 +62,9 @@ The code expects a CSV file containing the data for the different scenarios, net
 
 1. The users traverse the IoT environment with the provided speed, without any stops or changes in the speed.
 2. For now, we assume that the IoT owner precisely knows the user's privacy preferences and what to offer to them. We can add the estimator further down the line, but for now, we go through the list of users, offer to them the privacy policies and see if they consent and if it is after 1 phase or 2 phases
+
+## Introducing new scenarios, networking technologies or negotiation protocols
+
+To implement any new scenarios, networking technologies or negotiation protocols, mainly 2 things need to be done:
+1. Create the new class. For any assumptions or as a starter you may want to use the existing classes.
+2. Add the new class to the respective "metaclass", e.g., for scenarios it is _scenario.py_
