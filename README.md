@@ -29,18 +29,19 @@ The code can be run in 2 ways:
 ```
 python3 main.py -p <protocol> -n <network> -s <scenario> [-d <distribution>]
 ```
+**Note**: We provide _example_scenario_ option and class to test the code with small number of users in the environment, since other scenarios may take long time to run:
+```
+python3 main.py -p <protocol> -n <network> -s example_scenario [-d <distribution>]
+```
+The example scenario support any network technology and negotiation protocol.
+
 Currently implemented values are:
 |Protocols|Networks|Scenarios|Distributions|
 |----------|--------|---------|-------------|
 |alanezi|ble|hospital|poisson|
 |cunche|zigbee|shopping_mall|-|
 |concession|lora|university|-|
-
-Note: We provide _example_scenario_ option and class to test the code with small number of users in the environment, since other scenarios may take long time to run:
-```
-python3 main.py -p <protocol> -n <network> -s example_scenario [-d <distribution>]
-```
-The example scenario support any network technology and negotiation protocol.
+|-|-|example_scenario|-|
 
 2) Tournament-style Run (make sure to review "tournament_setup.xml" for tournament settings and make appropriate changes)
 ```
