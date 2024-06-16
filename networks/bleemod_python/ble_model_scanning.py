@@ -103,3 +103,69 @@ class BLEScanner:
                     BLE_E_MOD_SCAN_DPRETX + 8e-6 * n_bytes_tx) * BLE_E_MOD_SCAN_ITX)
 
         return charge
+
+    """
+    Implements BLE scanning state methods.
+    """
+    def ble_e_model_sc_get_duration_scan_event(self, scan_window, event_type, scan_type, n_bytes_adv_ind, n_bytes_tx,
+                                             n_bytes_rx,
+                                             reception_after_time):
+        """
+        Calculates the time consumed by a scan event.
+        This function calculates the time consumed by a scan event. Different event types are supported.
+        Further, it is distinguished between continuous scanning and periodic scanning. For periodic scanning,
+        each event begins with preprocessing and ends with postprocessing.
+        For continuous scanning, no beginning and end can be distinguished.
+        Therefore, the event duration is determined by definition: The event begins when a scanner begins scanning on a
+        certain channel and ends with the end of the channel-changing to the next channel.
+        Therefore, each scan event contains on channel-changing phase.
+        :param scan_window:	Scan window [s]. for SC_EVENT_TYPE_CON_REQ_OFFSET, this parameter is discarded
+        :param event_type:	Type of the scan event that occurs.
+        :param scan_type:	Determines weather periodic scanning (scan window < scan interval) or
+        continuous scanning (scan window = scan interval) takes place.
+        :param n_bytes_adv_ind:	Bytes of the ADV_IND packet received.
+        This value is currently ignored, it may be set to any value. It is reserved for future use.
+        :param n_bytes_tx:	Number of bytes sent in a scan request or connection request packet by the master .
+        Only used for \ref SC_EVENT_TYPE_ACTIVE_SCANNING, \ref SC_EVENT_TYPE_CON_REQ and \ref SC_EVENT_TYPE_CON_REQ_OFFSET
+        :param n_bytes_rx:	Number of bytes received in a scan response. Only used for \ref SC_EVENT_TYPE_ACTIVE_SCANNING .
+        :param reception_after_time:	Number of seconds beginning from the scan event after which
+        an advertising packet has been received completely. As this value is unknown most times,
+        the beginning of the reception can be inserted
+        :return: Time consumed by the scan event
+        """
+        # Charge for pre- and postprocessing
+        duration = BLE_E_MOD_SCAN_DPRE+ BLE_E_MOD_SCAN_DPOST
+
+        # Continuous scanning? => overwrite charge for pre-postprocessing with the charge for one channel-changing phase
+        duration = BLE_E_MOD_SCAN_DCHCH
+
+        if event_type == BLEModelSCEventType.SC_EVENT_TYPE_NO_RECEPTION:
+            duration += (scan_window + BLE_E_MOD_SCAN_DWOFFSET)
+
+        elif event_type == BLEModelSCEventType.SC_EVENT_TYPE_ABORTED:
+            if scan_window < reception_after_time:
+                duration += (scan_window + BLE_E_MOD_SCAN_DWOFFSET)
+            else:
+                duration += (reception_after_time + BLE_E_MOD_SCAN_DWOFFSET)
+
+        elif event_type == BLEModelSCEventType.SC_EVENT_TYPE_PASSIVE_SCANNING:
+            duration += (scan_window + BLE_E_MOD_SCAN_DWOFFSET)
+
+        elif event_type == BLEModelSCEventType.SC_EVENT_TYPE_ACTIVE_SCANNING:
+            duration += (scan_window + BLE_E_MOD_SCAN_DWOFFSET - BLE_E_MOD_SCAN_DRXTX - BLE_E_MOD_SCAN_DPRETX -
+                       8e-6 * n_bytes_tx - BLE_E_MOD_SCAN_DTXRX - BLE_E_MOD_SCAN_DPRERX - 8e-6 * n_bytes_rx -
+                       BLE_E_MOD_SCAN_DRXRX) + BLE_E_MOD_SCAN_DRXTX + (
+                              BLE_E_MOD_SCAN_DPRETX + 8e-6 * n_bytes_tx) + BLE_E_MOD_SCAN_DTXRX + (
+                              BLE_E_MOD_SCAN_DPRERX + 8e-6 * n_bytes_rx) + BLE_E_MOD_SCAN_DRXRX
+
+        elif event_type == BLEModelSCEventType.SC_EVENT_TYPE_CON_REQ:
+            duration += (
+                              scan_window - reception_after_time) + BLE_E_MOD_SCAN_DRXTX + (
+                              BLE_E_MOD_SCAN_DPRETX + 8e-6 * n_bytes_tx)
+
+        elif event_type == BLEModelSCEventType.SC_EVENT_TYPE_CON_REQ_OFFSET:
+            # note: 'charge =' instead of 'charge +=' means: no pre- or postprocessing
+            duration = (BLE_E_MOD_SCAN_DRXTX + (
+                    BLE_E_MOD_SCAN_DPRETX + 8e-6 * n_bytes_tx))
+
+        return duration

@@ -1,18 +1,19 @@
 import numpy as np
 from tqdm import tqdm
 import logging
+from util import check_distance
 
 
 class Driver:
     """
     The simulation driver class. Responsible for moving time and events forward.
     """
+
     def __init__(self, scenario, negotiation_protocol):
         """
         Initializes the driver class.
         :param scenario: Scenario to be simulated.
         :param negotiation_protocol: Negotiation protocol to be used.
-        :param logger: Logger object.
         """
         self.scenario = scenario
         self.negotiation_protocol = negotiation_protocol
@@ -38,6 +39,8 @@ class Driver:
         total_owner_time_spent = 0  # defines the total time spent by the owner
         total_consented = 0  # defines the number of users that consented
 
+        distance = 0  # local variable used to update users location
+
         logging.debug("Total Number of Users: " + str(len(self.scenario.list_of_users)))
 
         # self.scenario.plot_scenario()
@@ -60,9 +63,8 @@ class Driver:
 
             logging.debug("Current after removal users: " + str(len(curr_users_list)))
 
-            for u in curr_users_list:
-                if u.consent:
-                    curr_users_list.remove(u)
+            # remove already consented users from the list
+            curr_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
 
             logging.debug("Current after removal of consented users: " + str(len(curr_users_list)))
 
@@ -80,21 +82,15 @@ class Driver:
                     )
                 )
 
-            user_consent, applicable_users, total_user_power_consumption_tmp, total_owner_power_consumption_tmp, \
-                total_user_time_spent_tmp, total_owner_time_spent_tmp = \
-                self.negotiation_protocol.run(curr_users_list, self.scenario.iot_device)
+            # user_consent, applicable_users = \
+            self.negotiation_protocol.run(curr_users_list, self.scenario.iot_device)
 
-            logging.debug("Users in range: " + str(applicable_users))
-            logging.debug("List of consented: " + str([x for x in user_consent if x.id_]))
-            logging.debug("Consented: " + str(len([x for x in user_consent if x.consent])))
-            logging.debug("User power consumption: " + str(total_user_power_consumption_tmp))
-            logging.debug("Owner power consumption: " + str(total_owner_power_consumption_tmp))
-
-            total_consented += len([x for x in user_consent if x.consent])
-            total_user_power_consumption += total_user_power_consumption_tmp
-            total_owner_power_consumption += total_owner_power_consumption_tmp
-            total_user_time_spent += total_user_time_spent_tmp
-            total_owner_time_spent += total_owner_time_spent_tmp
+            logging.debug(
+                "Users in range: " + str([u.id_ for u in curr_users_list if check_distance(u.curr_loc, distance)]))
+            logging.debug("List of consented: " + str([u.id_ for u in curr_users_list if u.consent >= 1]))
+            logging.debug(
+                "Total user power consumption: " + str(sum([u.power_consumed for u in self.scenario.list_of_users])))
+            logging.debug("Total owner power consumption: " + str(self.scenario.iot_device.power_consumed))
 
             # Go to the next user under review
             uur += 1
@@ -122,6 +118,13 @@ class Driver:
         # Final update of the progress bar
         pbar.update(curr_t)
         pbar.close()
+
+        total_consented = len([u for u in self.scenario.list_of_users if u.consent >= 1])
+        total_user_power_consumption = sum([u.power_consumed for u in self.scenario.list_of_users])
+
+        total_owner_power_consumption = self.scenario.iot_device.power_consumed
+        total_user_time_spent += sum([u.time_spent for u in self.scenario.list_of_users])
+        total_owner_time_spent = self.scenario.iot_device.time_spent
 
         return total_consented, total_user_power_consumption, total_owner_power_consumption, \
             total_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device

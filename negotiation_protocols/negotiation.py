@@ -22,7 +22,7 @@ class NegotiationProtocol:
         """
         if self.protocol == "alanezi":
             alanezi = Alanezi(self.network)
-            return alanezi.run(list_of_users, iot_device)
+            alanezi.run(list_of_users, iot_device)
         elif self.protocol == "cunche":
             cunche = Cunche(self.network)
             return cunche.run(list_of_users, iot_device)

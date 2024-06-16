@@ -1,14 +1,15 @@
 <simulation>
-  <runs>3</runs>
+  <runs>20</runs>
   <networks>
-<!--    <network>ble</network>-->
+    <network>ble</network>
     <network>zigbee</network>
     <network>lora</network>
   </networks>
   <scenarios>
     <scenario>university</scenario>
     <scenario>hospital</scenario>
-<!--    <scenario>shopping_mall</scenario>-->
+    <scenario>shopping_mall</scenario>
+<!--    <scenario>example_scenario</scenario>-->
   </scenarios>
   <protocols>
     <protocol>alanezi</protocol>

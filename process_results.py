@@ -5,6 +5,7 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from matplotlib.ticker import ScalarFormatter
 
 
 class ResultProcessor:
@@ -38,8 +39,10 @@ class ResultProcessor:
                 owner_time = float(row["Total Owner Time Spent (s)"])
                 consent = float(row["Consent Percentage (%)"])
                 runtime = float(row["Total runtime (min)"])
-                user_utility = float(row["Average User Utility"])
-                owner_utility = float(row["Total Owner Utility"])
+                user_utility = float(row["Raw Average User Utility"])
+                owner_utility = float(row["Raw Total Owner Utility"])
+                user_stand_utility = float(row["Normalized Average User Utility"])
+                owner_stand_utility = float(row["Normalized Total Owner Utility"])
 
                 # Update the dictionaries
                 if protocol not in protocols:
@@ -62,7 +65,9 @@ class ResultProcessor:
                     "consent": consent,
                     "runtime": runtime,
                     "user utility": user_utility,
-                    "owner utility": owner_utility
+                    "owner utility": owner_utility,
+                    "user stand utility": user_stand_utility,
+                    "owner stand utility": owner_stand_utility
                 })
 
         with open('./results/statistics.csv', mode='w', newline='') as file:
@@ -76,7 +81,11 @@ class ResultProcessor:
                  'Avg Consent', 'Min Consent', 'Max Consent', 'Std Consent',
                  'Avg Runtime', 'Min Runtime', 'Max Runtime', 'Std Runtime', 'Avg User Utility',
                  'Min User Utility', 'Max User Utility', 'Std User Utility', 'Avg Owner Utility',
-                 'Min Owner Utility', 'Max Owner Utility', 'Std Owner Utility'
+                 'Min Owner Utility', 'Max Owner Utility', 'Std Owner Utility',
+                 'Avg Stand User Utility',
+                 'Min Stand User Utility', 'Max Stand User Utility', 'Std Stand User Utility',
+                 'Avg Stand Owner Utility',
+                 'Min Stand Owner Utility', 'Max Stand Owner Utility', 'Std Stand Owner Utility'
                  ])
 
             # Find the combination with the lowest power consumption, highest user consent, and least time taken
@@ -100,6 +109,11 @@ class ResultProcessor:
             best_network_utility = ""
             best_scenario_utility = ""
 
+            max_user_stand_utility_test = 0
+            best_protocol_stand_utility = ""
+            best_network_stand_utility = ""
+            best_scenario_stand_utility = ""
+
             # Calculate the statistics for each combination of protocol, network, and scenario
             for protocol, protocol_data in protocols.items():
                 for network, network_data in protocol_data.items():
@@ -112,6 +126,8 @@ class ResultProcessor:
                         runtimes = [data["runtime"] for data in scenario_data]
                         user_utility = [data["user utility"] for data in scenario_data]
                         owner_utility = [data["owner utility"] for data in scenario_data]
+                        user_stand_utility = [data["user stand utility"] for data in scenario_data]
+                        owner_stand_utility = [data["owner stand utility"] for data in scenario_data]
 
                         # Calculate the statistics
                         avg_user_current = round(np.mean(user_power), 2)
@@ -122,6 +138,8 @@ class ResultProcessor:
                         avg_runtime = round(np.mean(runtimes), 2)
                         avg_user_utility = round(np.mean(user_utility), 2)
                         avg_owner_utility = round(np.mean(owner_utility), 2)
+                        avg_user_stand_utility = round(np.mean(user_stand_utility), 2)
+                        avg_owner_stand_utility = round(np.mean(owner_stand_utility), 2)
 
                         if min(avg_user_current, avg_owner_current) < min_power:
                             min_power = min(avg_user_current, avg_owner_current)
@@ -147,6 +165,12 @@ class ResultProcessor:
                             best_network_utility = network
                             best_scenario_utility = scenario
 
+                        if avg_user_stand_utility > max_user_stand_utility_test:
+                            max_user_stand_utility_test = avg_user_utility
+                            best_protocol_stand_utility = protocol
+                            best_network_stand_utility = network
+                            best_scenario_stand_utility = scenario
+
                         min_user_current = round(np.min(user_power), 2)
                         min_owner_current = round(np.min(owner_power), 2)
                         min_user_time = round(np.min(user_time), 2)
@@ -155,6 +179,8 @@ class ResultProcessor:
                         min_runtime = round(np.min(runtimes), 2)
                         min_user_utility = round(np.min(user_utility), 2)
                         min_owner_utility = round(np.min(owner_utility), 2)
+                        min_user_stand_utility = round(np.min(user_stand_utility), 2)
+                        min_owner_stand_utility = round(np.min(owner_stand_utility), 2)
 
                         max_user_current = round(np.max(user_power), 2)
                         max_owner_current = round(np.max(owner_power), 2)
@@ -164,6 +190,8 @@ class ResultProcessor:
                         max_runtime = round(np.max(runtimes), 2)
                         max_user_utility = round(np.max(user_utility), 2)
                         max_owner_utility = round(np.max(owner_utility), 2)
+                        max_user_stand_utility = round(np.max(user_stand_utility), 2)
+                        max_owner_stand_utility = round(np.max(owner_stand_utility), 2)
 
                         std_user_current = round(np.std(user_power), 2)
                         std_owner_current = round(np.std(owner_power), 2)
@@ -173,6 +201,8 @@ class ResultProcessor:
                         std_runtime = round(np.std(runtimes), 2)
                         std_user_utility = round(np.std(user_utility), 2)
                         std_owner_utility = round(np.std(owner_utility), 2)
+                        std_user_stand_utility = round(np.std(user_stand_utility), 2)
+                        std_owner_stand_utility = round(np.std(owner_stand_utility), 2)
 
                         # Write the data to the file
                         writer.writerow(
@@ -185,7 +215,12 @@ class ResultProcessor:
                              avg_consent, min_consent,
                              max_consent, std_consent, avg_runtime, min_runtime, max_runtime, std_runtime,
                              avg_user_utility, min_user_utility, max_user_utility, std_user_utility,
-                             avg_owner_utility, min_owner_utility, max_owner_utility, std_owner_utility])
+                             avg_owner_utility, min_owner_utility, max_owner_utility, std_owner_utility,
+                             avg_user_stand_utility, min_user_stand_utility, max_user_stand_utility,
+                             std_user_stand_utility,
+                             avg_owner_stand_utility, min_owner_stand_utility, max_owner_stand_utility,
+                             std_owner_stand_utility
+                             ])
 
             # Open the file for writing
             with open('./results/top_performers.txt', 'w') as f:
@@ -214,11 +249,19 @@ class ResultProcessor:
                 f.write("\n")
 
                 # Write the combination with the highest user utility to the file
-                f.write("The combination with the highest user utility is:\n")
+                f.write("The combination with the highest raw user utility is:\n")
                 f.write(f"Protocol: {best_protocol_utility}\n")
                 f.write(f"Network: {best_network_utility}\n")
                 f.write(f"Scenario: {best_scenario_utility}\n")
                 f.write(f"User Utility: {max_user_utility_test:.2f}\n")
+                f.write("\n")
+
+                # Write the combination with the highest user standardized utility to the file
+                f.write("The combination with the highest normalized user utility is:\n")
+                f.write(f"Protocol: {best_protocol_stand_utility}\n")
+                f.write(f"Network: {best_network_stand_utility}\n")
+                f.write(f"Scenario: {best_scenario_stand_utility}\n")
+                f.write(f"User Utility: {max_user_stand_utility_test:.2f}\n")
                 f.write("\n")
 
             # Close the file
@@ -236,8 +279,9 @@ class ResultProcessor:
 
         # Define the metrics you want to plot
         metrics = ['Total User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Total User Time Spent (s)',
-                   'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'Average User Utility',
-                   'Total Owner Utility']
+                   'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'Raw Average User Utility',
+                   'Raw Total Owner Utility', 'Normalized Average User Utility',
+                   'Normalized Total Owner Utility']
 
         # Get the number of unique protocols
         num_protocols = len(df['Protocol'].unique())
@@ -269,7 +313,7 @@ class ResultProcessor:
                 scenario_data = group_data[metric]
                 protocol = group_name[0]  # Get the protocol name
                 color = protocol_colors.get(protocol,
-                                             'tab:blue')  # Get the color from the color palette, default to blue
+                                            'tab:blue')  # Get the color from the color palette, default to blue
                 # ax.bar(group_data.index, scenario_data, yerr=scenario_data.std(), capsize=5,
                 #        color=color)  # Use index instead of 'Scenario'
                 boxprops = dict(color=color, linewidth=2)  # Set color and line width for the boxplot lines
@@ -281,6 +325,8 @@ class ResultProcessor:
                 ax.set_xticks([])  # Remove x-ticks
                 ax.grid(True)
 
+                # Set the y-axis formatter to use ScalarFormatter for plain numbers
+                ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+
             plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to accommodate the main title
-            plt.savefig('./results/'+f'{metric}.png')  # Save plot as PNG file for the current metric with error bars
-            # plt.show()
+            plt.savefig('./results/' + f'{metric}.png')  # Save plot as PNG file for the current metric with error bars

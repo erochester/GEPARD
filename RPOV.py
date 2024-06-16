@@ -3,26 +3,31 @@ import os
 import statsmodels.formula.api as smf
 import statsmodels.stats.anova as sma
 import logging
+from util import result_file_util
 
 """
 Calculates the relative proportion of variation over the tournament results 
 to analyze the contribution of each PA component to the overall performance of the PA.
 """
 
+results_filename = "./results/rpov_results.txt"
+
 # Ask user for file path
 file_path = input("Enter file path to results file (.csv): ")
 
 # Check if file exists
 if not os.path.isfile(file_path):
-    logging.error("File not found. Exiting...")
+    logging.error(f"File {file_path} not found. Exiting...")
     exit()
+
+result_file_util(results_filename)
 
 # Read in the CSV file
 df = pd.read_csv(file_path)
 
 # replace 'Average User Utility' and 'Total User Power Consumption (W)' with the column names you want to analyze
-for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power Consumption (W)',
-            'Total User Time Spent (s)']:
+for col in ['Consent Percentage (%)', 'Raw Average User Utility', 'Normalized Average User Utility',
+            'Total User Power Consumption (W)', 'Total User Time Spent (s)']:
     formula = f"Q(\'{col}\') ~ Network + Protocol + Scenario + Network:Protocol + Network:Scenario + Protocol:Scenario"
     model = smf.ols(formula=formula, data=df).fit()
 
@@ -46,8 +51,11 @@ for col in ['Consent Percentage (%)', 'Average User Utility', 'Total User Power 
 
     # sort the proportion of variation dictionary by values
     sorted_variation_prop = sorted(variation_prop.items(), key=lambda x: x[1], reverse=True)
-
-    print(col)
-    for factor, prop in sorted_variation_prop:
-        print(f"Proportion of variation - {factor}: {prop}")
-    print("------------------------")
+    with open(results_filename, 'a') as f:
+        print(col+":")
+        f.write(f"{col}:\n")
+        for factor, prop in sorted_variation_prop:
+            print(f" - Proportion of variation - {factor}: {prop}")
+            f.write(f" - Proportion of variation - {factor}: {prop}\n")
+        print("------------------------")
+        f.write("------------------------\n")

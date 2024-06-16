@@ -12,7 +12,7 @@ from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
 from process_results import ResultProcessor
 from scenarios.scenario import Scenario
-from util import result_file_util, write_results, Distribution
+from util import result_file_util, write_results, Distribution, calc_norm_utility
 
 
 def main(scenario_name, network_type, protocol, filename, distribution_type):
@@ -57,30 +57,17 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
         total_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
         = driver.run()  # drives the simulation environment
 
-    # Find the maximum utility
-    max_utility = max([u.utility for u in list_of_users])
-
-    # Find the minimum utility
-    min_utility = min([u.utility for u in list_of_users])
-
-    # Scaling utilities
-    for u in list_of_users:
-        # check that utilities are non-zero
-        if max_utility != 0:
-            u.utility = (u.utility - min_utility) / (max_utility - min_utility) * 100
-
-    # check that utilities are non-zero
-    if max_utility != 0:
-        # Scale iot device utility
-        iot_device.utility = ((iot_device.utility - min_utility) / (max_utility - min_utility) * 100) / len(
-            list_of_users)
+    # calculate normalized utilities
+    calc_norm_utility(list_of_users, 0)
+    calc_norm_utility(list_of_users+[iot_device], 1)
 
     # Write to csv
     # Define the data rows
     rows = [[protocol, network_type, scenario_name, round(total_user_power_consumption, 2),
              round(total_owner_power_consumption, 2), round(total_user_time_spent, 2), round(total_owner_time_spent, 2),
              total_consented, len(list_of_users), round((total_consented / len(list_of_users)) * 100, 2),
-             round(end_time, 2), round(np.mean([u.utility for u in list_of_users]), 2), round(iot_device.utility, 2)]]
+             round(end_time, 2), round(np.mean([u.utility for u in list_of_users]), 2), round(iot_device.utility, 2),
+             round(np.mean([u.norm_utility for u in list_of_users]), 2), round(iot_device.norm_utility, 2)]]
 
     write_results(filename, rows)
 

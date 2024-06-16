@@ -36,6 +36,7 @@ class ShoppingMall:
 
         # Arrival lambda is assumed from shopping mall data analysis papers
         # ref: https://arxiv.org/pdf/1905.13098.pdf
+        # customers per min.
         lmbd = 2.55
 
         # Initialize arrival time
@@ -46,8 +47,8 @@ class ShoppingMall:
 
         # New arrivals come until 8 pm
         while arrival_time <= last_arrival:
-            # Generate the speed
-            speed = np.random.uniform(0.27, 1.5)
+            # Generate the speed (m/min.)
+            speed = np.random.uniform(16.2, 90)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -121,9 +122,9 @@ class ShoppingMall:
 
         for i in range(len([x.arr_loc for x in self.list_of_users[:10]])):
             x_points = (
-            [x.arr_loc for x in self.list_of_users[:10]][i][0], [x.dep_loc for x in self.list_of_users[:10]][i][0])
+                [x.arr_loc for x in self.list_of_users[:10]][i][0], [x.dep_loc for x in self.list_of_users[:10]][i][0])
             y_points = (
-            [x.arr_loc for x in self.list_of_users[:10]][i][1], [x.dep_loc for x in self.list_of_users[:10]][i][1])
+                [x.arr_loc for x in self.list_of_users[:10]][i][1], [x.dep_loc for x in self.list_of_users[:10]][i][1])
             plt.plot(x_points, y_points, linestyle='dashed')
 
         for i, txt in enumerate(["ID: " + str(x.id_) for x in self.list_of_users[:10]]):

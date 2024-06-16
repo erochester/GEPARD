@@ -29,15 +29,14 @@ class University:
         Similarly, generates the IoT device object.
         :param dist: Distribution used to generate user inter-arrival events.
         """
-        # Assume university times to be 9 am to 5 pm
-        # last_arrival = 8 * 60
-        # FIXME: testing small number of users
-        last_arrival = 2
+        # Assume university to work 24/7 (smoothes out the peaks at noon and emptiness at nights)
+        last_arrival = 24 * 60
+
         # Based on:
-        # https://web.archive.org/web/20150216063946id_/http://people.cs.umass.edu:80/~yungchih/publication/Infocom_mobility_queue.pdf
-        # The arrival rate between 9 am and 5 pm is the most stable at university
-        # We get 14.18 users per minute
-        lmbd = 14.18  # base arrival rate per minute
+        # http://publications.ics.forth.gr/tech-reports/2006/2006.TR379_Spatio-Temporal_Modeling-WLAN_traffic_demand.pdf
+        # (we assume 11 arrivals per hour, as per median, in a single AP (for us IoT device)
+        # We get ~0.1833 students per minute
+        lmbd = 0.1833  # base arrival rate per minute
 
         # Initialize arrival time
         arrival_time = 0
@@ -45,11 +44,10 @@ class University:
         # Initial user id
         user_id = 0
 
-        # New arrivals come until midnight as we simulate 1 full day
         while arrival_time <= last_arrival:
-            # Generate the speed
+            # Generate the speed (m/min.)
             # increase speed by 10% as in university people will walk faster
-            speed = 1.1 * np.random.uniform(0.27, 1.5)
+            speed = 1.1 * np.random.uniform(16.2, 90)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -109,7 +107,7 @@ class University:
 
     def plot_scenario(self):
         """
-        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        Method used to visualize the scenario, i.e., space, user arrival/departure points and
         trajectory across the space.
         """
         fig, ax = plt.subplots()

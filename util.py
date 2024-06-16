@@ -6,6 +6,7 @@ import random
 import math
 import logging
 
+
 def calc_utility(time, energy, weights):
     """
     Calculate the utility of the device
@@ -17,7 +18,7 @@ def calc_utility(time, energy, weights):
     """
     k = 100  # scaling factor
 
-    utility = k * (weights[0] * np.log(1+time)/np.log(1+energy))
+    utility = k * (weights[0] * np.log(1 + time) / np.log(1 + energy))
     # utility = k * np.log(1 + time) / np.log(1 + energy) # alternative method for unweighted utility calculations
 
     return utility
@@ -113,7 +114,8 @@ def write_results(filename, rows):
             fields = ["Protocol", "Network", "Scenario", "Total User Power Consumption (W)",
                       "Total Owner Power Consumption (W)", "Total User Time Spent (s)", "Total Owner Time Spent (s)",
                       "Consent collected from", "Total user number",
-                      "Consent Percentage (%)", "Total runtime (min)", "Average User Utility", "Total Owner Utility"]
+                      "Consent Percentage (%)", "Total runtime (min)", "Raw Average User Utility", "Raw Total Owner Utility",
+                      "Normalized Average User Utility", "Normalized Total Owner Utility"]
             csvwriter.writerow(fields)
 
         # Write the data rows
@@ -125,6 +127,7 @@ class Distribution():
     Class for different distribution implementation.
     Currently, implements only Poisson arrival process.
     """
+
     def __init__(self, distribution_type):
         """
         Initialize the Distribution class.
@@ -150,3 +153,32 @@ class Distribution():
             return inter_arrival_time
         else:
             raise ValueError("Unsupported distribution type")
+
+
+def calc_norm_utility(data, is_iot_device):
+    """
+    Calculate the normalized utility to make them more comparable.
+    :param data: Data to be normalized (either list of user utilities or may include the iot device).
+    :param is_iot_device: Whether the data includes the IoT device object at the end of the data list.
+    """
+    # Use this to scale the utilities respective to each other.
+    # We keep the utilities as-is per algorithm and standardize separately.
+    # Find the maximum utility
+    max_utility = max([u.utility for u in data])
+
+    # Find the minimum utility
+    min_utility = min([u.utility for u in data])
+
+    # Scaling utilities
+    if not is_iot_device:
+        for u in data:
+            # check that utilities are non-zero
+            if max_utility != 0:
+                u.norm_utility = (u.utility - min_utility) / (max_utility - min_utility) * 100
+
+    # check that utilities are non-zero
+    else:
+        if max_utility != 0:
+            # Scale iot device utility
+            data[-1].norm_utility = ((data[-1].utility - min_utility) / (max_utility - min_utility) * 100) / len(
+                data)

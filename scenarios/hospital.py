@@ -30,11 +30,10 @@ class Hospital:
         :param dist: Distribution used to generate user inter-arrival events.
         """
         # The hospital works 24/7
-        # last_arrival = 24 * 60
-        # FIXME: testing small number of users
-        last_arrival = 30
+        last_arrival = 24 * 60
 
         # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
+        # patients per min.
         lmbd = 0.1584
 
         # Initialize arrival time
@@ -45,9 +44,9 @@ class Hospital:
 
         # New arrivals come until midnight as we simulate 1 full day
         while arrival_time <= last_arrival:
-            # Generate the speed
+            # Generate the speed (m/min.)
             # reduce speed by 10% as in hospital people will slow down
-            speed = 0.9 * np.random.uniform(0.27, 1.5)
+            speed = 0.9 * np.random.uniform(16.2, 90)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
