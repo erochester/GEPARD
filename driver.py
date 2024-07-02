@@ -49,24 +49,32 @@ class Driver:
         end_time = self.scenario.list_of_users[len(self.scenario.list_of_users) - 1].dep_time
         pbar = tqdm(total=end_time, colour='green')
 
+        # TODO: generate an event queue (times and users) and just pop it to avoid race conditions and double counting
+        # 2 types of events in the queue: arrival to the env. and arrival to the comm. range
+
+        # Extract and flatten the times
+        times_list = [(u.arr_time, u.within_comm_range_time) for u in self.scenario.list_of_users]
+        flat_times_list = [time for times in times_list for time in times]
+        # cleanup to leave only 1 zero
+        flat_times_list = list(filter(lambda time: time != 0.0, flat_times_list))
+
+        # Sort the list of times
+        sorted_times_list = sorted(flat_times_list)
+
+        logging.debug("Sorted Simulation Times Queue: " + str(sorted_times_list))
+
+        for curr_t in sorted_times_list:
+
+            # determine which users are in the env
+            curr_users_list = [u for u in self.scenario.list_of_users if u.arr_time <= curr_t < u.dep_time]
+
         # Run the simulation until we run out of the users/time
-        while curr_t <= self.scenario.list_of_users[len(self.scenario.list_of_users) - 1].dep_time:
+        # while curr_t <= self.scenario.list_of_users[len(self.scenario.list_of_users) - 1].dep_time:
 
             logging.debug("#################################################################")
             logging.debug("Current time: " + str(curr_t))
             logging.debug("Current before removal users: " + str(len(curr_users_list)))
-
-            # Update current user list (remove the ones that have left the area)
-            for u in curr_users_list:
-                if u.dep_time <= curr_t:
-                    curr_users_list.remove(u)
-
-            logging.debug("Current after removal users: " + str(len(curr_users_list)))
-
-            # remove already consented users from the list
-            curr_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
-
-            logging.debug("Current after removal of consented users: " + str(len(curr_users_list)))
+            logging.debug("User details (id, consent, within_comm_range): " + str([(u.id_, u.consent, u.within_comm_range_time) for u in curr_users_list]))
 
             # Update current user location
             for u in curr_users_list:
@@ -82,40 +90,27 @@ class Driver:
                     )
                 )
 
+            # remove already consented users from the list
+            curr_non_consented_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
+            curr_non_consented_users_list = list(filter(lambda x: (not x.neg_attempted), curr_non_consented_users_list))
+
+            logging.debug("Current after removal of consented users: " + str(len(curr_non_consented_users_list)))
+
             # user_consent, applicable_users = \
-            self.negotiation_protocol.run(curr_users_list, self.scenario.iot_device)
+            self.negotiation_protocol.run(curr_non_consented_users_list, self.scenario.iot_device)
+
+            # refresh
+            curr_non_consented_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
+            logging.debug("Current after removal of consented users after negotiation: " + str(len(curr_non_consented_users_list)))
 
             logging.debug(
-                "Users in range: " + str([u.id_ for u in curr_users_list if check_distance(u.curr_loc, distance)]))
-            logging.debug("List of consented: " + str([u.id_ for u in curr_users_list if u.consent >= 1]))
+                "Users within space: " + str([u.id_ for u in curr_users_list if check_distance(u.curr_loc, distance)]))
+            logging.debug("List of consented: " + str([u.id_ for u in self.scenario.list_of_users if u.consent >= 1]))
             logging.debug(
                 "Total user power consumption: " + str(sum([u.power_consumed for u in self.scenario.list_of_users])))
-            logging.debug("Total owner power consumption: " + str(self.scenario.iot_device.power_consumed))
-
-            # Go to the next user under review
-            uur += 1
-
-            logging.debug("Users left: " + str(len(curr_users_list)))
-            # If there are no users left, we break out of simulation loop
-            if not curr_users_list:
-                break
-
-            logging.debug("No more arrivals left?: " + str(uur >= len(self.scenario.list_of_users)))
-            # if this is the last arriving user
-            if uur >= len(self.scenario.list_of_users):
-                min_dep_time = min(curr_users_list, key=lambda x: x.dep_time).dep_time
-                # Update progress bar
-                pbar.update(min_dep_time - curr_t)
-                curr_t = min_dep_time
-            # otherwise we continue to update arriving, estimating their privacy coefficients and
-            # adding to the current user list
-            else:
-                # Update progress bar
-                pbar.update(self.scenario.list_of_users[uur].arr_time - curr_t)
-                curr_t = self.scenario.list_of_users[uur].arr_time
-                curr_users_list.append(self.scenario.list_of_users[uur])
 
         # Final update of the progress bar
+        # TODO: fix the pbar
         pbar.update(curr_t)
         pbar.close()
 
@@ -125,6 +120,8 @@ class Driver:
         total_owner_power_consumption = self.scenario.iot_device.power_consumed
         total_user_time_spent += sum([u.time_spent for u in self.scenario.list_of_users])
         total_owner_time_spent = self.scenario.iot_device.time_spent
+
+        print("Total Consented: " + str(total_consented))
 
         return total_consented, total_user_power_consumption, total_owner_power_consumption, \
             total_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device

@@ -54,7 +54,8 @@ def check_distance(curr_loc, distance):
     :param distance: Effective communication range (m).
     :return: Boolean value (True of False).
     """
-    if np.sqrt((curr_loc[0] ** 2 + curr_loc[1] ** 2)) >= distance:
+    # we round due to rounding errors when generating the arrival time to the communication range
+    if round(np.sqrt((curr_loc[0] ** 2 + curr_loc[1] ** 2)),2) > distance:
         return False
     else:
         return True

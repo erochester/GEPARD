@@ -68,9 +68,11 @@ class Concession:
                 # for fundamentalists, we offer the minimum consent option
                 if random.random() <= 0.2:
                     highest_utility_user.update_consent(1)
+                    highest_utility_user.update_neg_attempted()
             # everyone else consents
             else:
                 highest_utility_user.update_consent(1)
+                highest_utility_user.update_neg_attempted()
 
             if highest_utility_user.consent:
                 if self.network.network_type == "ble":
@@ -159,7 +161,6 @@ class Concession:
             # charge_c is in [C], so we should divide by dc to get the current
             current_c = result.chargeAdv / result.discoveryLatency
             u.add_to_power_consumed(current_c)
-            current_c = result.chargeScan / result.discoveryLatency
             iot_device_power_consumed += current_c
 
             # at the end of discovery the device go through connection establishment
@@ -188,7 +189,7 @@ class Concession:
                 self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
                 (1, 0, 0,
                  0,
-                 0.1))
+                 0.1) / duration)
 
             # the owner (slave) sends PP to the user (master)
             duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,

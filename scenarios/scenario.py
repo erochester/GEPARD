@@ -9,17 +9,17 @@ class Scenario:
     """
     Metaclass for the Scenarios. Used to unify and call different scenario implementations.
     """
-    def __init__(self, scenario, list_of_users, iot_device):
+    def __init__(self, scenario, list_of_users, iot_device, network):
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         if scenario == "example_scenario":
-            self.scenario = ExampleScenario(list_of_users, iot_device)
+            self.scenario = ExampleScenario(list_of_users, iot_device, network)
         elif scenario == "shopping_mall":
-            self.scenario = ShoppingMall(list_of_users, iot_device)
+            self.scenario = ShoppingMall(list_of_users, iot_device, network)
         elif scenario == "hospital":
-            self.scenario = Hospital(list_of_users, iot_device)
+            self.scenario = Hospital(list_of_users, iot_device, network)
         elif scenario == "university":
-            self.scenario = University(list_of_users, iot_device)
+            self.scenario = University(list_of_users, iot_device, network)
         else:
             logging.error("Scenario not supported")
             sys.exit(1)

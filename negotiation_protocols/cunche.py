@@ -39,44 +39,69 @@ class Cunche:
             if check_distance(u.curr_loc, distance):
                 applicable_users.append(u)
 
-        for u in applicable_users:
-            # check if user already consented and if not
-            if not u.consent:
-                # check the user's privacy label
-                if u.privacy_label == 1:
-                    # for fundamentalists, we offer we see if user is in 79.6% non-consenting
-                    if random.random() > 0.796:
-                        # of these only 25% consent in first phase and 75% in second phase
-                        if random.random() <= 0.25:
-                            u.update_consent(1)
+        # print("Applicable users: {}".format([(u.id_, u.curr_loc, distance) for u in applicable_users]))
+
+        if applicable_users:
+            temp_list = []
+            for u in applicable_users:
+                # check if user already consented and if not
+                if not u.consent:
+                    # attempted to negotiate with the user
+                    u.update_neg_attempted()
+                    # check the user's privacy label
+                    if u.privacy_label == 1:
+                        # print("Reached label 1")
+                        # for fundamentalists, we see if user is in 1 - 0.796 consenting
+                        rnd = random.random()
+                        # print("Random: ", rnd)
+                        if rnd > 0.796:
+                            # print("Passed random check")
+                            # of these only 25% consent in first phase and 75% in second phase
+                            if random.random() <= 0.25:
+                                u.update_consent(1)
+                                temp_list.append(u)
+                            else:
+                                u.update_consent(2)
+                                temp_list.append(u)
                         else:
-                            u.update_consent(2)
+                            # the rest do not consent
+                            u.update_consent(0)
+                    elif u.privacy_label == 2:
+                        # print("Reached label 2")
+                        # for privacy pragmatists 26.45% do not consent
+                        # of the remaining 73.55%, 75% consent in first phase and 25% in second phase
+                        rnd = random.random()
+                        # print("Random: ", rnd)
+                        if rnd <= 0.7355:
+                            # print("Passed random check")
+                            if random.random() <= 0.75:
+                                u.update_consent(1)
+                                temp_list.append(u)
+                            else:
+                                u.update_consent(2)
+                                temp_list.append(u)
+                    # everyone else consents in 1 phase
                     else:
-                        # the rest do not consent
-                        u.update_consent(0)
-                elif u.privacy_label == 2:
-                    # for privacy pragmatists 26.45% do not consent
-                    # of the remaining 73.55%, 75% consent in first phase and 25% in second phase
-                    if random.random() >= 0.7355:
-                        if random.random() <= 0.75:
-                            u.update_consent(1)
-                        else:
-                            u.update_consent(2)
-                # everyone else consents in 1 phase
-                else:
-                    u.update_consent(1)
+                        u.update_consent(1)
+                        temp_list.append(u)
 
-        # Create a list of dictionaries containing arguments for the function
-        user_data_list = [{"user_data": user_data, "user_pp_size": user_pp_size, "owner_pp_size": owner_pp_size,
-                           "applicable_users": applicable_users,
-                           "iot_device": iot_device}
-                          for user_data in enumerate(applicable_users)]
+            # print("User consent: ", [(u.privacy_label, u.consent) for u in applicable_users])
 
-        # Use multiprocessing to parallelize the for loop
-        with ThreadPoolExecutor() as executor:
-            # Map the function over the user data list
-            list(executor.map(self.consumption_for_user, user_data_list))
-            executor.shutdown(wait=True, cancel_futures=False)
+            applicable_users = temp_list
+            # print("Applicable and consenting users: {}".format(applicable_users))
+
+        if applicable_users:
+            # Create a list of dictionaries containing arguments for the function
+            user_data_list = [{"user_data": user_data, "user_pp_size": user_pp_size, "owner_pp_size": owner_pp_size,
+                               "applicable_users": applicable_users,
+                               "iot_device": iot_device}
+                              for user_data in enumerate(applicable_users)]
+
+            # Use multiprocessing to parallelize the for loop
+            with ThreadPoolExecutor() as executor:
+                # Map the function over the user data list
+                list(executor.map(self.consumption_for_user, user_data_list))
+                executor.shutdown(wait=True, cancel_futures=False)
 
     # Define a function to calculate power consumption and duration with a single user
     def consumption_for_user(self, args):
@@ -91,6 +116,10 @@ class Cunche:
         user_pp_size = args["user_pp_size"]
         owner_pp_size = args["owner_pp_size"]
         iot_device = args["iot_device"]
+
+        if u.consent == 0:
+            logging.error("Something went wrong in Cunche. There is a user that has not consented but we try to process them.")
+            exit(-1)
 
         # check if the current user is going to negotiate:
         if u.consent > 0:
@@ -161,7 +190,6 @@ class Cunche:
             # charge_c is in [C], so we should divide by dc to get the current
             current_c = result.chargeAdv / result.discoveryLatency
             u.add_to_power_consumed(current_c)
-            current_c = result.chargeScan / result.discoveryLatency
             iot_device_power_consumed += current_c
 
             # at the end of discovery the device go through connection establishment
@@ -295,8 +323,6 @@ class Cunche:
         iot_device_power_consumed = 0
         iot_device_time_consumed = 0
 
-        print("Zigbee Negotation Started")
-
         # if 0 phases (won't consent) we don't do anything
         # if 1 phase
         if u.consent > 0:
@@ -398,7 +424,6 @@ class Cunche:
             logging.info("Invalid consent value in cunche.py.")
             sys.exit(1)
 
-        print("Power consumed: ", iot_device_power_consumed)
         iot_device.add_to_time_spent(iot_device_time_consumed)
         iot_device.add_to_power_consumed(iot_device_power_consumed)
 

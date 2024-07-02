@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import math
+import os
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,13 +14,14 @@ class ResultProcessor:
     Result processor class.
     """
 
-    def process_results(self):
+    def process_results(self, script_dir):
         """
         Processes the results stored in "./results/results.csv" to generate statistics and other insights
         and saves them in './results/top_performers.txt' for top performers and
         './results/statistics.csv' for general statistics.
         """
-        filename = "./results/results.csv"
+
+        filename = os.path.join(script_dir, 'results/results.csv')
 
         # Define dictionaries to store the data
         protocols = {}
@@ -70,23 +72,24 @@ class ResultProcessor:
                     "owner stand utility": owner_stand_utility
                 })
 
-        with open('./results/statistics.csv', mode='w', newline='') as file:
+        with open(os.path.join(script_dir, 'results/statistics.csv'), mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(
-                ['Protocol', 'Network', 'Scenario', 'Avg User Power', 'Min User Power', 'Max User Power',
-                 'Std User Power',
-                 'Avg Owner Power', 'Min Owner Power', 'Max Owner Power', 'Std Owner Power',
-                 'Avg User Time', 'Min User Time', 'Max User Time', 'Std User Time',
-                 'Avg Owner Time', 'Min Owner Time', 'Max Owner Time', 'Std Owner Time',
-                 'Avg Consent', 'Min Consent', 'Max Consent', 'Std Consent',
-                 'Avg Runtime', 'Min Runtime', 'Max Runtime', 'Std Runtime', 'Avg User Utility',
-                 'Min User Utility', 'Max User Utility', 'Std User Utility', 'Avg Owner Utility',
-                 'Min Owner Utility', 'Max Owner Utility', 'Std Owner Utility',
-                 'Avg Stand User Utility',
-                 'Min Stand User Utility', 'Max Stand User Utility', 'Std Stand User Utility',
-                 'Avg Stand Owner Utility',
-                 'Min Stand Owner Utility', 'Max Stand Owner Utility', 'Std Stand Owner Utility'
-                 ])
+                [
+                    'Protocol', 'Network', 'Scenario',
+                    'Avg User Power (W)', 'Min User Power (W)', 'Max User Power (W)', 'Std User Power (W)',
+                    'Avg Owner Power (W)', 'Min Owner Power (W)', 'Max Owner Power (W)', 'Std Owner Power (W)',
+                    'Avg User Time (s)', 'Min User Time (s)', 'Max User Time (s)', 'Std User Time (s)',
+                    'Avg Owner Time (s)', 'Min Owner Time (s)', 'Max Owner Time (s)', 'Std Owner Time (s)',
+                    'Avg Consent (%)', 'Min Consent (%)', 'Max Consent (%)', 'Std Consent (%)',
+                    'Avg Runtime (min)', 'Min Runtime (min)', 'Max Runtime (min)', 'Std Runtime (min)',
+                    'Avg User Utility', 'Min User Utility', 'Max User Utility', 'Std User Utility',
+                    'Avg Owner Utility', 'Min Owner Utility', 'Max Owner Utility', 'Std Owner Utility',
+                    'Avg Stand User Utility', 'Min Stand User Utility', 'Max Stand User Utility',
+                    'Std Stand User Utility',
+                    'Avg Stand Owner Utility', 'Min Stand Owner Utility', 'Max Stand Owner Utility',
+                    'Std Stand Owner Utility'
+                ])
 
             # Find the combination with the lowest power consumption, highest user consent, and least time taken
             min_power = float("inf")
@@ -223,7 +226,7 @@ class ResultProcessor:
                              ])
 
             # Open the file for writing
-            with open('./results/top_performers.txt', 'w') as f:
+            with open(os.path.join(script_dir, 'results/top_performers.txt'), 'w') as f:
                 # Write the combination with the least power consumption to the file
                 f.write("The combination with the least power consumption is:\n")
                 f.write(f"Protocol: {best_protocol}\n")
@@ -267,12 +270,13 @@ class ResultProcessor:
             # Close the file
             f.close()
 
-    def plot_results(self):
+    def plot_results(self, script_dir):
         """
         Reads data from './results/results.csv' and plots it on a grid of plots.
         """
+        filename = os.path.join(script_dir, 'results/results.csv')
         # Read data from CSV file
-        df = pd.read_csv('./results/results.csv')
+        df = pd.read_csv(filename)
 
         # Group data by Protocol, Network, and Scenario
         groups = df.groupby(['Protocol', 'Network', 'Scenario'])
@@ -329,4 +333,5 @@ class ResultProcessor:
                 ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
 
             plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to accommodate the main title
-            plt.savefig('./results/' + f'{metric}.png')  # Save plot as PNG file for the current metric with error bars
+            file_path = os.path.join(script_dir, './results/' + f'{metric}.png')
+            plt.savefig(file_path)  # Save plot as PNG file for the current metric with error bars

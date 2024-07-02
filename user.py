@@ -21,8 +21,10 @@ class User:
         self.privacy_coeff = privacy_coeff
         self.consent = 0  # 0 -> False, 1 -> True, >2 -> Number of rounds
         self.arr_time = 0.0
+        self.within_comm_range_time = 0.0
+        self.neg_attempted = False
         self.dep_time = 0.0
-        self.curr_loc = 0
+        self.curr_loc = arr_loc
         self.utility = 0.0
         self.norm_utility = 0.0
         self.power_consumed = 0.0
@@ -35,6 +37,12 @@ class User:
         :param utility: The new utility value.
         """
         self.utility = utility
+
+    def update_neg_attempted(self):
+        """
+        Update the negotation attempted boolean.
+        """
+        self.neg_attempted = True
 
     def update_stand_utility(self, standardized_utility):
         """
@@ -49,6 +57,13 @@ class User:
         :param curr_loc: The new location value (x,y).
         """
         self.curr_loc = curr_loc
+
+    def update_within_comm_range(self, within_comm_range_time):
+        """
+        Update when user will be within communication range time.
+        :param within_comm_range_time: The new within comm range time.
+        """
+        self.within_comm_range_time = within_comm_range_time
 
     def update_arrival_time(self, arr_time):
         """
@@ -96,7 +111,7 @@ class User:
         return (f"Object ID: {id(self)}, User ID: {self.id_}, Speed: {self.speed}, "
                 f"Arrival Location: {self.arr_loc}, Departure Location: {self.dep_loc}, "
                 f"Privacy Label: {self.privacy_label}, Privacy Coefficient: {self.privacy_coeff}, "
-                f"Consent: {self.consent}, Utility: {self.utility}, Standardized Utility: {self.standardized_utility}, "
+                f"Consent: {self.consent}, Utility: {self.utility}, Normalized Utility: {self.norm_utility}, "
                 f"Power Consumed: {self.power_consumed}, Time Spent: {self.time_spent}, "
-                f"Weights: {self.weights}")
+                f"Weights: {self.weights}, Negotiation Attempted: {self.neg_attempted}")
 

@@ -3,6 +3,7 @@ import logging
 from logging_module import setup_logging
 import random
 from xml.etree.ElementTree import parse
+import os
 
 import numpy as np
 
@@ -36,17 +37,17 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
     # create distribution object
     dist = Distribution(distribution_type)
 
+    # network technology that determines the range of communication, power consumed and allowed data rates
+    network = Network(network_type)
+
     # Generates the users/PAs
-    scenario = Scenario(scenario_name, list_of_users, iot_device)
+    scenario = Scenario(scenario_name, list_of_users, iot_device, network)
     scenario.generate_scenario(dist)
     logging.debug("Number of users: %s", len(scenario.list_of_users))
 
     # plot user locations
     # uncomment if you want to plot the IoT area with user arrival/departure locations and trajectories
     # scenario.plot_scenario()
-
-    # network technology that determines the range of communication, power consumed and allowed data rates
-    network = Network(network_type)
 
     # create the negotiation protocol object that determines the rules of the encounter
     negotiation_protocol = NegotiationProtocol(protocol, network)
@@ -92,8 +93,13 @@ if __name__ == "__main__":
     # Set up logging
     setup_logging(verbose=args.verbose)
 
-    filename = "./results/results.csv"
-    result_file_util(filename)
+    # Get the directory of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Construct the path to the results file relative to the script directory
+    file_path = os.path.join(script_dir, 'results/results.csv')
+
+    result_file_util(file_path)
 
     if not args.distribution:
         distribution_type = "poisson"
@@ -102,10 +108,15 @@ if __name__ == "__main__":
 
     # default seed for reproducibility
     random.seed(123)
+    np.random.seed(123)
 
     if args.tournament:
+
+        # Construct the path to the XML file relative to the script directory
+        xml_file_path = os.path.join(script_dir, 'tournament_setup.xml')
+
         # Load the XML file
-        tree = parse('tournament_setup.xml')
+        tree = parse(xml_file_path)
         root = tree.getroot()
         runs = int(root.find('runs').text)
         networks = [network.text for network in root.findall('networks/network')]
@@ -121,7 +132,7 @@ if __name__ == "__main__":
                         # Run your code here with the current combination of protocol, network, and scenario
                         logging.info(f"Run {i + 1} of {runs} for protocol {protocol}, network {network}, "
                               f"and scenario {scenario}")
-                        main(scenario, network, protocol, filename, distribution_type)
+                        main(scenario, network, protocol, file_path, distribution_type)
     else:
         if not args.protocol or not args.network or not args.scenario:
             parser.error("Please provide -a, -s and -n arguments to setup protocol, scenario and network type.")
@@ -132,11 +143,11 @@ if __name__ == "__main__":
         logging.info("Network: %s", network_type)
         scenario_name = args.scenario
         logging.info("Scenario: %s", scenario_name)
-        main(scenario_name, network_type, protocol, filename, distribution_type)
+        main(scenario_name, network_type, protocol, file_path, distribution_type)
 
     logging.info("Processing Results!")
     # Process results
     result_processor = ResultProcessor()
-    result_processor.process_results()
+    result_processor.process_results(script_dir)
     # Plot results only works for tournament for now
-    result_processor.plot_results()
+    result_processor.plot_results(script_dir)

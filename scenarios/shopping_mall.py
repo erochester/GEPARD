@@ -13,7 +13,7 @@ class ShoppingMall:
     Implements the Shopping Mall scenario.
     """
 
-    def __init__(self, list_of_users, iot_device):
+    def __init__(self, list_of_users, iot_device, network):
         """
         Initializes all the users, the IoT device and the space size for the scenario.
         :param list_of_users: List of all User objects.
@@ -23,6 +23,7 @@ class ShoppingMall:
         self.iot_device = iot_device
         # The radius of the shopping mall is assumed to be 120 meters
         self.radius = 120
+        self.network = network
 
     def generate_scenario(self, dist):
         """
@@ -33,6 +34,7 @@ class ShoppingMall:
         # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
         # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
         last_arrival = 10 * 60
+        # last_arrival = 2
 
         # Arrival lambda is assumed from shopping mall data analysis papers
         # ref: https://arxiv.org/pdf/1905.13098.pdf
@@ -60,6 +62,54 @@ class ShoppingMall:
             x_d = np.cos(departure_angle) * self.radius
             y_d = np.sin(departure_angle) * self.radius
 
+            within_comm_range_time = 0.0
+
+            if self.radius > self.network.network_impl.comm_distance:
+
+                # Coefficients for the quadratic equation
+                A = (x_d - x_a) ** 2 + (y_d - y_a) ** 2
+                B = 2 * (x_a * (x_d - x_a) + y_a * (y_d - y_a))
+                C = x_a ** 2 + y_a ** 2 - self.network.network_impl.comm_distance ** 2
+
+                # Calculate the discriminant
+                discriminant = B ** 2 - 4 * A * C
+
+                # Initialize the closest point and minimum distance
+                closest_point = None
+                min_distance = float('inf')
+                within_comm_range_time = 0.0
+
+                # Check if the line intersects the inner circle
+                if discriminant >= 0:
+                    # Calculate the two solutions for t
+                    t1 = (-B + np.sqrt(discriminant)) / (2 * A)
+                    t2 = (-B - np.sqrt(discriminant)) / (2 * A)
+
+                    intersection_points = []
+
+                    # Check if t1 is within the range [0, 1]
+                    if 0 <= t1 <= 1:
+                        x1 = x_a + t1 * (x_d - x_a)
+                        y1 = y_a + t1 * (y_d - y_a)
+                        intersection_points.append((x1, y1))
+
+                    # Check if t2 is within the range [0, 1]
+                    if 0 <= t2 <= 1:
+                        x2 = x_a + t2 * (x_d - x_a)
+                        y2 = y_a + t2 * (y_d - y_a)
+                        intersection_points.append((x2, y2))
+
+                    # Determine the closest intersection point to the arrival point
+                    for point in intersection_points:
+                        distance = np.sqrt((point[0] - x_a) ** 2 + (point[1] - y_a) ** 2)
+                        if distance < min_distance:
+                            min_distance = distance
+                            closest_point = point
+
+                    if intersection_points:
+                        distance = np.sqrt((closest_point[0] - x_a) ** 2 + (closest_point[1] - y_a) ** 2)
+                        within_comm_range_time = distance / speed
+
             # Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)
             privacy_coeff = random.choice([1] * 25 + [2] * 55 + [3] * 20)
             if privacy_coeff == 1:
@@ -76,9 +126,9 @@ class ShoppingMall:
             # for shopping mall scenario we assume that energy consumed is more important than service provided for user
             # but that data collected is more important than energy consumed for IoT device
             # first is data/service and second is energy
-            weights = [0.2, 0.8]
+            weights = [0.8, 0.2]
 
-            self.iot_device.update_weights([0.8, 0.2])
+            self.iot_device.update_weights(weights)
 
             # Create the user and append to the list
             user = User(user_id, speed, (x_a, y_a), (x_d, y_d), privacy_label, privacy_coeff, weights)
@@ -89,6 +139,10 @@ class ShoppingMall:
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time
+
+            if within_comm_range_time != 0.0:
+                user.update_within_comm_range(arrival_time + within_comm_range_time)
+
             user.update_arrival_time(arrival_time)
 
             # Calculate distance between user arrival and departure points
@@ -112,24 +166,22 @@ class ShoppingMall:
         fig, ax = plt.subplots()
         plt.rcParams['figure.figsize'] = [4, 4]
 
-        ax.add_patch(Circle((0, 0), 40, edgecolor='blue', facecolor='none', lw=1))
+        ax.add_patch(Circle((0, 0), self.network.network_impl.comm_distance, edgecolor='blue', facecolor='none', lw=1))
         ax.add_patch(Circle((self.iot_device.device_location[0], self.iot_device.device_location[1]), 2,
                             edgecolor='orange', facecolor='orange', lw=1))
         plt.text(1, 1, "IoT Device")
 
-        ax.scatter(*zip(*[x.arr_loc for x in self.list_of_users[:10]]), c='g')
-        ax.scatter(*zip(*[x.dep_loc for x in self.list_of_users[:10]]), c='r')
+        ax.scatter(*zip(*[x.arr_loc for x in self.list_of_users]), c='g')
+        ax.scatter(*zip(*[x.dep_loc for x in self.list_of_users]), c='r')
 
-        for i in range(len([x.arr_loc for x in self.list_of_users[:10]])):
-            x_points = (
-                [x.arr_loc for x in self.list_of_users[:10]][i][0], [x.dep_loc for x in self.list_of_users[:10]][i][0])
-            y_points = (
-                [x.arr_loc for x in self.list_of_users[:10]][i][1], [x.dep_loc for x in self.list_of_users[:10]][i][1])
+        for i in range(len([x.arr_loc for x in self.list_of_users])):
+            x_points = ([x.arr_loc for x in self.list_of_users][i][0], [x.dep_loc for x in self.list_of_users][i][0])
+            y_points = ([x.arr_loc for x in self.list_of_users][i][1], [x.dep_loc for x in self.list_of_users][i][1])
             plt.plot(x_points, y_points, linestyle='dashed')
 
-        for i, txt in enumerate(["ID: " + str(x.id_) for x in self.list_of_users[:10]]):
-            plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users[:10]]))[0][i],
-                               list(zip(*[x.arr_loc for x in self.list_of_users[:10]]))[1][i]))
+        for i, txt in enumerate(["ID: " + str(x.id_) for x in self.list_of_users]):
+            plt.annotate(txt, (list(zip(*[x.arr_loc for x in self.list_of_users]))[0][i],
+                               list(zip(*[x.arr_loc for x in self.list_of_users]))[1][i]))
 
         # add x and y axis labels
         plt.xlabel("meters (m)")
