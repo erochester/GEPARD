@@ -19,7 +19,7 @@ class User:
         self.dep_loc = dep_loc
         self.privacy_label = privacy_label
         self.privacy_coeff = privacy_coeff
-        self.consent = 0  # 0 -> False, 1 -> True, >2 -> Number of rounds
+        self.consent = 0
         self.arr_time = 0.0
         self.within_comm_range_time = 0.0
         self.neg_attempted = False
@@ -30,6 +30,7 @@ class User:
         self.power_consumed = 0.0
         self.time_spent = 0.0
         self.weights = weights
+        self.offers = []
 
     def update_utility(self, utility):
         """

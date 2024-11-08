@@ -26,8 +26,8 @@ result_file_util(results_filename)
 df = pd.read_csv(file_path)
 
 # replace 'Average User Utility' and 'Total User Power Consumption (W)' with the column names you want to analyze
-for col in ['Consent Percentage (%)', 'Raw Average User Utility', 'Normalized Average User Utility',
-            'Total User Power Consumption (W)', 'Total User Time Spent (s)']:
+for col in ['Consent Percentage (%)', 'Normalized Average User Utility',
+            'Avg User Power Consumption (W)', 'Total Owner Power Consumption (W)']:
     formula = f"Q(\'{col}\') ~ Network + Protocol + Scenario + Network:Protocol + Network:Scenario + Protocol:Scenario"
     model = smf.ols(formula=formula, data=df).fit()
 
@@ -35,7 +35,8 @@ for col in ['Consent Percentage (%)', 'Raw Average User Utility', 'Normalized Av
     try:
         anova_table = sma.anova_lm(model, typ=2)
         sst = anova_table['sum_sq'].sum()
-    except:
+    except Exception as e:
+        print(f"Error occurred during ANOVA: {e}")
         print("Something went wrong. Probably you want to provide more data/results combinations for this to work!")
         exit(-1)
 

@@ -1,6 +1,7 @@
 from negotiation_protocols.cunche import Cunche
 from negotiation_protocols.alanezi import Alanezi
 from negotiation_protocols.concession import Concession
+from negotiation_protocols.padome import Padome
 import sys
 import logging
 
@@ -29,6 +30,9 @@ class NegotiationProtocol:
         elif self.protocol == "concession":
             concession = Concession(self.network)
             return concession.run(list_of_users, iot_device)
+        elif self.protocol == "padome":
+            padome = Padome(self.network)
+            return padome.run(list_of_users, iot_device)
         else:
             logging.info("Negotiation protocol not supported")
             sys.exit(1)

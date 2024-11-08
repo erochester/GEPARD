@@ -4,6 +4,7 @@ from util import check_distance, calc_utility, calc_time_remaining
 import random
 import sys
 import logging
+from util import get_config
 
 
 class Cunche:
@@ -17,6 +18,9 @@ class Cunche:
         :param network: network type (e.g., BLE)
         """
         self.network = network
+        self.config = get_config()['Cunche']  # load cunche config
+        self.user_pp_size = self.config['user_pp_size']
+        self.owner_pp_size = self.config['owner_pp_size']
 
     def run(self, curr_users_list, iot_device):
         """
@@ -28,10 +32,6 @@ class Cunche:
         :return: Returns total device power and time consumption, as well as the updated user lists.
         """
 
-        # Privacy policy size in bytes
-        user_pp_size = 38
-        owner_pp_size = 86
-
         # remove users that are > x meters away from IoT device
         applicable_users = []
         distance = self.network.network_impl.comm_distance
@@ -40,24 +40,23 @@ class Cunche:
                 applicable_users.append(u)
 
         # print("Applicable users: {}".format([(u.id_, u.curr_loc, distance) for u in applicable_users]))
+        self.consent_thresholds = self.config['consent_thresholds']
 
         if applicable_users:
             temp_list = []
             for u in applicable_users:
                 # check if user already consented and if not
-                if not u.consent:
+                if not u.consent and not u.neg_attempted:
                     # attempted to negotiate with the user
                     u.update_neg_attempted()
                     # check the user's privacy label
                     if u.privacy_label == 1:
-                        # print("Reached label 1")
                         # for fundamentalists, we see if user is in 1 - 0.796 consenting
                         rnd = random.random()
-                        # print("Random: ", rnd)
-                        if rnd > 0.796:
+                        if rnd > self.consent_thresholds['fundamentalist']['initial_consent_probability']:
                             # print("Passed random check")
                             # of these only 25% consent in first phase and 75% in second phase
-                            if random.random() <= 0.25:
+                            if random.random() <= self.consent_thresholds['fundamentalist']['first_phase_probability']:
                                 u.update_consent(1)
                                 temp_list.append(u)
                             else:
@@ -67,32 +66,29 @@ class Cunche:
                             # the rest do not consent
                             u.update_consent(0)
                     elif u.privacy_label == 2:
-                        # print("Reached label 2")
                         # for privacy pragmatists 26.45% do not consent
                         # of the remaining 73.55%, 75% consent in first phase and 25% in second phase
                         rnd = random.random()
-                        # print("Random: ", rnd)
-                        if rnd <= 0.7355:
-                            # print("Passed random check")
-                            if random.random() <= 0.75:
+                        if rnd <= self.consent_thresholds['pragmatist']['initial_consent_probability']:
+                            if random.random() <= self.consent_thresholds['pragmatist']['first_phase_probability']:
                                 u.update_consent(1)
                                 temp_list.append(u)
                             else:
                                 u.update_consent(2)
                                 temp_list.append(u)
+                        else:
+                            # the rest do not consent
+                            u.update_consent(0)
                     # everyone else consents in 1 phase
                     else:
                         u.update_consent(1)
                         temp_list.append(u)
 
-            # print("User consent: ", [(u.privacy_label, u.consent) for u in applicable_users])
-
             applicable_users = temp_list
-            # print("Applicable and consenting users: {}".format(applicable_users))
 
         if applicable_users:
             # Create a list of dictionaries containing arguments for the function
-            user_data_list = [{"user_data": user_data, "user_pp_size": user_pp_size, "owner_pp_size": owner_pp_size,
+            user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size, "owner_pp_size": self.owner_pp_size,
                                "applicable_users": applicable_users,
                                "iot_device": iot_device}
                               for user_data in enumerate(applicable_users)]
@@ -182,8 +178,12 @@ class Cunche:
 
             # Calculate the latency and energy consumption of device discovery. The values are taken from:
             # https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
-            result = (self.network.network_impl.discovery.ble_model_discovery_get_result
-                      (100, 0.9999, 0.25, 5, 2, 0.01, 1000))
+            if u.consent == 1:
+                result = (self.network.network_impl.discovery.ble_model_discovery_get_result_alanezi
+                          (100, 0.9999, 0.25, 5, 2, 0.01, 1000, owner_pp_size))
+            else:
+                result = (self.network.network_impl.discovery.ble_model_discovery_get_result
+                          (100, 0.9999, 0.25, 5, 2, 0.01, 1000))
 
             u.add_to_time_spent(result.discoveryLatency)
             iot_device_time_consumed += result.discoveryLatency
@@ -192,121 +192,105 @@ class Cunche:
             u.add_to_power_consumed(current_c)
             iot_device_power_consumed += current_c
 
-            # at the end of discovery the device go through connection establishment
-            # as per documentation there is no duration, since it is accounted in the discovery
-            # For user we set periodic scan type and to be the master
-            duration = \
-                (self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
-                 (1, 0, 1,
-                  0,
-                  0.1))
-            u.add_to_time_spent(duration)
+            connection_established = False
 
-            u.add_to_power_consumed(
-                self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
-                (1, 0, 1,
-                 0,
-                 0.1) / duration)
+        if u.consent == 2:
 
-            duration = \
-                (self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
-                 (1, 0, 0,
-                  0,
-                  0.1))
-            iot_device_time_consumed += duration
-            iot_device_power_consumed += (
+            if not connection_established:
+                # at the end of discovery the device go through connection establishment
+                # as per documentation there is no duration, since it is accounted in the discovery
+                # For user we set periodic scan type
+
+                duration = \
+                    (
+                        self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
+                        (1, 0, 1,
+                         0,
+                         0.1))
+                u.add_to_time_spent(duration)
+
+                u.add_to_power_consumed(
                     self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
-                    (1, 0, 0,
+                    (1, 0, 1,
                      0,
                      0.1) / duration)
 
-            # the owner (slave) sends PP to the user (master)
-            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,
+                duration = \
+                    (
+                        self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
+                        (1, 0, 0,
+                         0,
+                         0.1))
+                iot_device_time_consumed += duration
+                iot_device_power_consumed += (
+                        self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
+                        (1, 0, 0,
+                         0,
+                         0.1) / duration)
+
+                connection_established = True
+
+            # user forwards its PP to the iot
+            # the owner then forwards "modified" PP to the user which is either accepted
+            # or user has to leave the environment so no need for acceptance
+            # we just assume it is the same as the PP sent to the user
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
                                                                                                 [0],
-                                                                                                [owner_pp_size], 3)
+                                                                                                [user_pp_size], 3)
+            u.add_to_time_spent(duration)
+
+            u.add_to_power_consumed(
+                self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                       [0],
+                                                                                       [user_pp_size],
+                                                                                       3) / duration)
+
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [user_pp_size],
+                                                                                                [0],
+                                                                                                3)
             iot_device_time_consumed += duration
 
-            iot_device_power_consumed += self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1,
+            iot_device_power_consumed += self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0,
+                                                                                                                0.1,
                                                                                                                 1,
-                                                                                                                [0],
                                                                                                                 [
-                                                                                                                    owner_pp_size],
+                                                                                                                    user_pp_size],
+                                                                                                                [
+                                                                                                                    0],
                                                                                                                 3) / duration
-
-            # user receives the PP of the owner
-            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(0, 0.1, 1,
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
                                                                                                 [owner_pp_size],
                                                                                                 [0], 3)
             u.add_to_time_spent(duration)
 
-            u.add_to_power_consumed(self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0, 0.1, 1,
-                                                                                                           [
-                                                                                                               owner_pp_size],
-                                                                                                           [0],
-                                                                                                           3) / duration)
+            u.add_to_power_consumed(
+                self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                       [owner_pp_size],
+                                                                                       [0],
+                                                                                       3) / duration)
 
-            if u.consent == 1:
-                # user sends the consent to the owner
-                # indicated by reply of the same PP as received
-                duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
-                                                                                                    [0],
-                                                                                                    [owner_pp_size], 3)
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [0],
+                                                                                                [owner_pp_size],
+                                                                                                3)
+            iot_device_time_consumed += duration
 
-                u.add_to_time_spent(duration)
-                iot_device_time_consumed += duration
+            iot_device_power_consumed += self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0,
+                                                                                                                0.1,
+                                                                                                                1,
+                                                                                                                [
+                                                                                                                    0],
+                                                                                                                [
+                                                                                                                    owner_pp_size],
+                                                                                                                3) / duration
+        elif u.consent > 2:
+            logging.error("Invalid consent value in cunche.py.")
+            sys.exit(1)
 
-                iot_device_power_consumed += self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0,
-                                                                                                                    0.1,
-                                                                                                                    1,
-                                                                                                                    [
-                                                                                                                        owner_pp_size],
-                                                                                                                    [0],
-                                                                                                                    3) / duration
-
-                u.add_to_power_consumed(
-                    self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
-                                                                                           [owner_pp_size],
-                                                                                           [owner_pp_size],
-                                                                                           3) / duration)
-
-            elif u.consent == 2:
-                # user forwards its PP to the iot
-                # the owner then forwards "modified" PP to the user
-                # we just assume it is the same as the PP sent to the user
-                duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
-                                                                                                    [owner_pp_size],
-                                                                                                    [user_pp_size], 3)
-                u.add_to_time_spent(duration)
-
-                u.add_to_power_consumed(
-                    self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
-                                                                                           [owner_pp_size],
-                                                                                           [user_pp_size],
-                                                                                           3) / duration)
-
-                duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
-                                                                                                    [user_pp_size],
-                                                                                                    [owner_pp_size],
-                                                                                                    3)
-                iot_device_time_consumed += duration
-
-                iot_device_power_consumed += self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(0,
-                                                                                                                    0.1,
-                                                                                                                    1,
-                                                                                                                    [
-                                                                                                                        user_pp_size],
-                                                                                                                    [
-                                                                                                                        owner_pp_size],
-                                                                                                                    3) / duration
-
-            elif u.consent > 2:
-                logging.error("Invalid consent value in cunche.py.")
-                sys.exit(1)
-
-        voltage = 3.3  # We assume that BLE devices operate at 3.3V
         # convert from As to Ws
-        u.power_consumed = u.power_consumed * voltage
-        iot_device.add_to_power_consumed(iot_device_power_consumed * voltage)
+        u.power_consumed = u.power_consumed * self.network.network_impl.voltage
+        iot_device.add_to_power_consumed(iot_device_power_consumed * self.network.network_impl.voltage)
         iot_device.add_to_time_spent(iot_device_time_consumed)
 
     def zigbee_negotiation(self, user_pp_size, owner_pp_size, u, iot_device):
@@ -344,6 +328,45 @@ class Cunche:
             iot_device_power_consumed += charge_a
 
             # at the end of association the mote sends its request to the coordinator
+            charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            u.add_to_time_spent(d_rx)
+            iot_device_time_consumed += d_tx
+            u.add_to_power_consumed(charge_rx)
+            iot_device_power_consumed += charge_tx
+
+            # Send ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+            u.add_to_time_spent(d_tx)
+            iot_device_time_consumed += d_rx
+            u.add_to_power_consumed(charge_tx)
+            iot_device_power_consumed += charge_rx
+
+            if u.consent == 1:
+                # the Coordinator sends its consent to the mote
+                # indicated by reply of the same PP
+                charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+                charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+                u.add_to_time_spent(d_tx)
+                iot_device_time_consumed += d_rx
+                u.add_to_power_consumed(charge_tx)
+                iot_device_power_consumed += charge_rx
+
+                # Send ACK
+                charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+                charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+                u.add_to_time_spent(d_rx)
+                iot_device_time_consumed += d_tx
+                u.add_to_power_consumed(charge_rx)
+                iot_device_power_consumed += charge_tx
+
+        elif u.consent == 2:
+            # the Coordinator sends its PP to the mote
             charge_tx, d_tx = self.network.network_impl.send(user_pp_size)
             charge_rx, d_rx = self.network.network_impl.receive(user_pp_size)
 
@@ -361,48 +384,7 @@ class Cunche:
             u.add_to_power_consumed(charge_rx)
             iot_device_power_consumed += charge_tx
 
-            if u.consent == 1:
-                # the mote sends its consent to the Coordinator
-                # indicated by reply of the same PP
-
-                charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
-                charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
-
-                u.add_to_time_spent(d_tx)
-                iot_device_time_consumed += d_rx
-                u.add_to_power_consumed(charge_tx)
-                iot_device_power_consumed += charge_rx
-
-                # Send ACK
-                charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
-                charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
-
-                u.add_to_time_spent(d_tx)
-                iot_device_time_consumed += d_rx
-                u.add_to_power_consumed(charge_tx)
-                iot_device_power_consumed += charge_rx
-
-        elif u.consent == 2:
-            # the mote sends its PP to the Coordinator
-
-            charge_tx, d_tx = self.network.network_impl.send(user_pp_size)
-            charge_rx, d_rx = self.network.network_impl.receive(user_pp_size)
-
-            u.add_to_time_spent(d_tx)
-            iot_device_time_consumed += d_rx
-            u.add_to_power_consumed(charge_tx)
-            iot_device_power_consumed += charge_rx
-
-            # Send ACK
-            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
-            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
-
-            u.add_to_time_spent(d_tx)
-            iot_device_time_consumed += d_rx
-            u.add_to_power_consumed(charge_tx)
-            iot_device_power_consumed += charge_rx
-
-            # the Coordinator sends the "modified" PP to the mote
+            # the mote responds with the owner PP to indicate consent
             charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
             charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
@@ -463,6 +445,7 @@ class Cunche:
                 iot_device_time_consumed += d_rx
                 u.add_to_power_consumed(power_tx)
                 iot_device_power_consumed += power_rx
+
             elif u.consent == 2:
                 # the LoRa node replies with its PP
                 power_tx, d_tx = self.network.network_impl.send(user_pp_size)
@@ -482,6 +465,7 @@ class Cunche:
                 iot_device_time_consumed += d_tx
                 u.add_to_power_consumed(power_rx)
                 iot_device_power_consumed += power_tx
+
             elif u.consent > 2:
                 logging.error("Invalid consent value in cunche.py.")
                 sys.exit(1)

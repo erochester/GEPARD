@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from tqdm import tqdm
 import logging
@@ -91,17 +93,18 @@ class Driver:
                 )
 
             # remove already consented users from the list
-            curr_non_consented_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
-            curr_non_consented_users_list = list(filter(lambda x: (not x.neg_attempted), curr_non_consented_users_list))
+            # curr_non_consented_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
+            # curr_non_consented_users_list = list(filter(lambda x: (not x.neg_attempted), curr_non_consented_users_list))
 
-            logging.debug("Current after removal of consented users: " + str(len(curr_non_consented_users_list)))
+            # logging.debug("Current after removal of consented users: " + str(len(curr_non_consented_users_list)))
 
             # user_consent, applicable_users = \
-            self.negotiation_protocol.run(curr_non_consented_users_list, self.scenario.iot_device)
+            # self.negotiation_protocol.run(curr_non_consented_users_list, self.scenario.iot_device)
+            self.negotiation_protocol.run(curr_users_list, self.scenario.iot_device)
 
             # refresh
-            curr_non_consented_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
-            logging.debug("Current after removal of consented users after negotiation: " + str(len(curr_non_consented_users_list)))
+            # curr_non_consented_users_list = list(filter(lambda x: (x.consent == 0), curr_users_list))
+            # logging.debug("Current after removal of consented users after negotiation: " + str(len(curr_non_consented_users_list)))
 
             logging.debug(
                 "Users within space: " + str([u.id_ for u in curr_users_list if check_distance(u.curr_loc, distance)]))
@@ -115,13 +118,11 @@ class Driver:
         pbar.close()
 
         total_consented = len([u for u in self.scenario.list_of_users if u.consent >= 1])
-        total_user_power_consumption = sum([u.power_consumed for u in self.scenario.list_of_users])
+        avg_user_power_consumption = sum([u.power_consumed for u in self.scenario.list_of_users])/len(self.scenario.list_of_users)
 
         total_owner_power_consumption = self.scenario.iot_device.power_consumed
         total_user_time_spent += sum([u.time_spent for u in self.scenario.list_of_users])
         total_owner_time_spent = self.scenario.iot_device.time_spent
 
-        print("Total Consented: " + str(total_consented))
-
-        return total_consented, total_user_power_consumption, total_owner_power_consumption, \
+        return total_consented, avg_user_power_consumption, total_owner_power_consumption, \
             total_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device

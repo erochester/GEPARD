@@ -1,0 +1,212 @@
+############################### Tournament Parameters ###############################
+
+Tournament:
+  runs: 25
+  networks:
+    - ble
+    - zigbee
+#    - lora
+  scenarios:
+    - university  # Commented out scenario
+    - hospital
+    - shopping_mall  # Commented out scenario
+    # - example_scenario
+  protocols:
+#    - alanezi
+    - cunche
+#    - concession
+#    - padome
+
+############################### Scenario Parameters ###############################
+University:
+  radius: 80               # space is assumed circular
+
+  last_arrival: 1440       # how long the simulation will be for
+  lambda: 0.1833           # user arrival rate
+
+  multiplier: 1.1          # Speed increase multiplier
+  speed_min: 16.2          # Minimum base speed
+  speed_max: 90.0          # Maximum base speed
+
+  privacy_fundamentalists_proportion: 25  # Represented by privacy label 1
+  privacy_pragmatists_proportion: 55      # Represented by privacy label 2
+  privacy_unconcerned_proportion: 20      # Represented by privacy label 3
+
+  privacy_fundamentalists_coeff_range: [0.001, 0.03]
+  privacy_pragmatists_coeff_range: [0.11, 0.15]
+  privacy_unconcerned_coeff_range: [0.031, 0.10]
+
+  privacy_adjustment_factor: 0.9  # Adjustment to privacy coefficient (e.g., in less privacy-sensitive environments)
+
+  time_weight: 0.2
+  energy_weight: 0.8
+
+Hospital:
+  radius: 40  # space is assumed circular (specific to hospital)
+  last_arrival: 1440  # how long the simulation will be for (24 hours)
+  lambda: 0.1584  # user arrival rate for hospital
+
+  multiplier: 0.9  # Speed decrease multiplier for hospital environment (e.g., slower pace)
+  speed_min: 16.2  # Minimum base speed
+  speed_max: 90.0  # Maximum base speed
+
+  privacy_fundamentalists_proportion: 25  # Represented by privacy label 1
+  privacy_pragmatists_proportion: 55      # Represented by privacy label 2
+  privacy_unconcerned_proportion: 20      # Represented by privacy label 3
+
+  privacy_fundamentalists_coeff_range: [0.001, 0.03]
+  privacy_pragmatists_coeff_range: [0.11, 0.15]
+  privacy_unconcerned_coeff_range: [0.031, 0.10]
+
+  privacy_adjustment_factor: 1.5  # Higher adjustment factor in sensitive environments like hospitals
+
+  time_weight: 0.9  # Weight for time in hospital scenario
+  energy_weight: 0.1  # Weight for energy in hospital scenario
+
+ShoppingMall:
+  radius: 120                       # space is assumed circular
+
+  last_arrival: 600                 # last arrival time
+  lambda: 2.55                      # user arrival rate in users per minute
+
+  multiplier: 1.0  # Speed increase/decrease multiplier for environment (e.g., slower pace)
+  speed_min: 16.2                   # Minimum base speed (m/min)
+  speed_max: 90.0                   # Maximum base speed (m/min)
+
+  privacy_fundamentalists_proportion: 25  # Represented by privacy label 1
+  privacy_pragmatists_proportion: 55      # Represented by privacy label 2
+  privacy_unconcerned_proportion: 20      # Represented by privacy label 3
+
+  privacy_fundamentalists_coeff_range: [0.001, 0.03]
+  privacy_pragmatists_coeff_range: [0.11, 0.15]
+  privacy_unconcerned_coeff_range: [0.031, 0.10]
+
+  time_weight: 0.2                 # Weight for time in utility calculation
+  energy_weight: 0.8                # Weight for energy in utility calculation
+
+############################### Network Parameters ###############################
+
+Lora:
+  # mA reference:
+  # https://cdn.cnx-software.com/wp-content/uploads/2018/03/LoRaWAN-vs-NB-IoT-LTE-Cat-M1-Power-Consumption.jpg?lossy=0&strip=none&ssl=1
+  voltage: 3.3  # V
+  i_rx: 12  # mA
+  cr: 0.8
+  # default values that get adjusted using ADR
+  lora_max_payload: 51  # bytes
+  sf: 10
+  bw: 250 # kHz
+  i_tx: 24  # mA
+  comm_distance: 10000  # m assume 10 km for lora
+
+  mode_configs:
+    - - [ 7, 500 ]
+      - lora_max_payload: 242
+        i_tx: 28
+    - - [ 9, 250 ]
+      - lora_max_payload: 115
+        i_tx: 90
+    - - [ 10, 250 ]
+      - lora_max_payload: 51
+        i_tx: 125
+
+Zigbee:
+  voltage: 3.6 # V
+  ack_size: 65 # bytes
+  comm_distance: 100 # m effective communication distance for ZigBee
+
+  t_onoff: 0.013  # s
+  i_onoff: 0.013  # A
+  t_list: 0.0029  # s
+  i_list: 0.0325  # A
+  i_tx: 0.0305    # A
+  i_rx: 0.0325    # A
+
+BLE:
+  voltage: 3.3 # V
+  comm_distance: 50 # m
+
+############################### Negotiation Protocol Parameters ###############################
+
+Alanezi:
+  # As per paper
+  user_pp_size: 217 # bytes
+  owner_pp_size: 639 # bytes
+
+  # This is an example of privacy dimensions for different policies (t, r, s, i) as per Alanezi
+  # t: Data Type, r: Retention, s: Sharing, i: Inference
+  privacy_dim:
+    - [ 3, 3, 1, 3 ]
+    - [ 5, 1, 1, 1 ]
+    - [ 2, 2, 2, 2 ]
+    - [ 2, 1, 2, 2 ]
+
+  # Gamma value ranges for different user types
+  gamma_ranges:
+    fundamentalist: [ 0.843, 1.0 ]
+    pragmatist: [ 0.0, 1.0 ]
+
+  # Pragmatist consent thresholds
+  pragmatist_thresholds:
+    one_phase: 0.551625
+    two_phase: 0.7355
+
+Cunche:
+  user_pp_size: 38 # bytes
+  owner_pp_size: 86 # bytes
+
+  consent_thresholds:
+    fundamentalist:
+      initial_consent_probability: 0.796
+      first_phase_probability: 0.25
+    pragmatist:
+      initial_consent_probability: 0.7355
+      first_phase_probability: 0.75
+    default_phase: 1
+
+Concession:
+  user_pp_size: 38 # bytes
+  owner_pp_size: 86 # bytes
+
+  negotiation_steps: 5
+  consent_probabilities:
+    fundamentalist: 0.204   # 20.4% consent for fundamentalists
+    pragmatist: 0.7355      # 73.55% consent for pragmatists
+
+Padome:
+  reservation_value: 0.25 # 0.25 default value
+  user_pp_size: 217 # bytes
+  owner_pp_size: 639 # bytes
+
+  # Assume 3 negotiable values, each in range (1-5)
+  neg_value: 3
+  neg_range: 5
+
+  deadline_factors:
+    # Base deadline (empirical testing shows that less than 4 rounds provides low consent numbers)
+    base_deadline: 4
+    user_count_factor_multiplier: 0.5
+    network_factors:
+      BLE: 2
+      LoRa: 3
+      Zigbee: 1.5
+      default: 0  # for faster networks like Wi-Fi
+    distance_factor_multiplier: 2
+    pp_size_factor_multiplier: 1.5
+
+  privacy_type_distribution:
+    fundamentalist: 0.275
+    pragmatist: 0.575
+    unconcerned: 0.125
+
+  response_likelihood:
+    fundamentalist: 0.204
+    pragmatist: 0.7355  # 0.5 + 0.2355 combined probability
+    unconcerned: 1.0
+
+  user_elicitation_cost: 0.05 # default 0.05
+
+  privacy_weights:
+    unconcerned: [ 0.9, 0.8, 0.9 ]    # Privacy label 3: Unconcerned
+    pragmatist: [ 0.5, 0.4, 0.5 ]     # Privacy label 2: Pragmatist
+    fundamentalist: [ 0.2, 0.1, 0.2 ] # Privacy label 1: Fundamentalist

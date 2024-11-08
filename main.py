@@ -13,7 +13,7 @@ from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
 from process_results import ResultProcessor
 from scenarios.scenario import Scenario
-from util import result_file_util, write_results, Distribution, calc_norm_utility
+from util import result_file_util, write_results, Distribution, calc_norm_utility, determine_decimals, load_config
 
 
 def main(scenario_name, network_type, protocol, filename, distribution_type):
@@ -54,7 +54,7 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
 
     driver = Driver(scenario, negotiation_protocol)
 
-    total_consented, total_user_power_consumption, total_owner_power_consumption, \
+    total_consented, avg_user_power_consumption, total_owner_power_consumption, \
         total_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
         = driver.run()  # drives the simulation environment
 
@@ -64,11 +64,18 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
 
     # Write to csv
     # Define the data rows
-    rows = [[protocol, network_type, scenario_name, round(total_user_power_consumption, 2),
-             round(total_owner_power_consumption, 2), round(total_user_time_spent, 2), round(total_owner_time_spent, 2),
-             total_consented, len(list_of_users), round((total_consented / len(list_of_users)) * 100, 2),
-             round(end_time, 2), round(np.mean([u.utility for u in list_of_users]), 2), round(iot_device.utility, 2),
-             round(np.mean([u.norm_utility for u in list_of_users]), 2), round(iot_device.norm_utility, 2)]]
+    rows = [[protocol, network_type, scenario_name,
+             round(avg_user_power_consumption, determine_decimals(avg_user_power_consumption)),
+             round(total_owner_power_consumption, determine_decimals(total_owner_power_consumption)),
+             round(total_user_time_spent, determine_decimals(total_user_time_spent)),
+             round(total_owner_time_spent, determine_decimals(total_owner_time_spent)),
+             total_consented, len(list_of_users),
+             round((total_consented / len(list_of_users)) * 100, 2),
+             round(end_time, determine_decimals(end_time)),
+             round(np.mean([u.utility for u in list_of_users]), 2),
+             round(iot_device.utility, 2),
+             round(np.mean([u.norm_utility for u in list_of_users]), 2),
+             round(iot_device.norm_utility, 2)]]
 
     write_results(filename, rows)
 
@@ -110,18 +117,15 @@ if __name__ == "__main__":
     random.seed(123)
     np.random.seed(123)
 
+    # Load YAML file
+    config = load_config()
+
     if args.tournament:
-
-        # Construct the path to the XML file relative to the script directory
-        xml_file_path = os.path.join(script_dir, 'tournament_setup.xml')
-
-        # Load the XML file
-        tree = parse(xml_file_path)
-        root = tree.getroot()
-        runs = int(root.find('runs').text)
-        networks = [network.text for network in root.findall('networks/network')]
-        scenarios = [scenario.text for scenario in root.findall('scenarios/scenario')]
-        protocols = [protocol.text for protocol in root.findall('protocols/protocol')]
+        # Extract values directly from the YAML configuration
+        runs = config['Tournament']['runs']
+        networks = config['Tournament']['networks']
+        scenarios = config['Tournament']['scenarios']
+        protocols = config['Tournament']['protocols']
         # Run the code for each combination of protocol, network, and scenario
         for protocol in protocols:
             for network in networks:

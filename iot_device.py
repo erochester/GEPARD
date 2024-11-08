@@ -13,6 +13,7 @@ class IoTDevice:
         self.utility = 0
         self.norm_utility = 0
         self.weights = []
+        self.offers = []
 
     def update_weights(self, weights):
         """

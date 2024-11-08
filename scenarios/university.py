@@ -4,6 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Circle
+from util import get_config
 
 from user import User
 
@@ -19,10 +20,17 @@ class University:
         :param iot_device: IoT device object.
         :param network: Network object to determine the communication range.
         """
+        self.config = get_config()['University']  # Load config once
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         # The university radius is assumed to be the middle ground, i.e., 80 meters
-        self.radius = 80
+        self.radius = self.config['radius']
+        # Assume university to work 24/7 (smoothes out the peaks at noon and emptiness at nights)
+        self.last_arrival = self.config['last_arrival']
+        self.lmbd = self.config['lambda']  # base arrival rate per minute
+        self.multiplier = self.config['multiplier']
+        self.speed_min = self.config['speed_min']
+        self.speed_max = self.config['speed_max']
         self.network = network
 
     def generate_scenario(self, dist):
@@ -31,15 +39,11 @@ class University:
         Similarly, generates the IoT device object.
         :param dist: Distribution used to generate user inter-arrival events.
         """
-        # Assume university to work 24/7 (smoothes out the peaks at noon and emptiness at nights)
-        last_arrival = 24 * 60
-        # last_arrival = 10
-
         # Based on:
         # http://publications.ics.forth.gr/tech-reports/2006/2006.TR379_Spatio-Temporal_Modeling-WLAN_traffic_demand.pdf
         # (we assume 11 arrivals per hour, as per median, in a single AP (for us IoT device)
         # We get ~0.1833 students per minute
-        lmbd = 0.1833  # base arrival rate per minute
+
 
         # Initialize arrival time
         arrival_time = 0
@@ -47,10 +51,10 @@ class University:
         # Initial user id
         user_id = 0
 
-        while arrival_time <= last_arrival:
+        while arrival_time <= self.last_arrival:
             # Generate the speed (m/min.)
             # increase speed by 10% as in university people will walk faster
-            speed = 1.1 * np.random.uniform(16.2, 90)
+            speed = self.multiplier * np.random.uniform(self.speed_min, self.speed_max)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -118,26 +122,28 @@ class University:
                         within_comm_range_time = distance / speed
 
             # Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)
-            privacy_coeff = random.choice([1] * 25 + [2] * 55 + [3] * 20)
+            privacy_coeff = random.choice([1] * self.config['privacy_fundamentalists_proportion']
+                                          + [2] * self.config['privacy_pragmatists_proportion']
+                                          + [3] * self.config['privacy_unconcerned_proportion'])
             if privacy_coeff == 1:
-                privacy_coeff = random.uniform(0.001, 0.03)
+                privacy_coeff = random.uniform(*self.config['privacy_fundamentalists_coeff_range'])
                 privacy_label = 1
             elif privacy_coeff == 2:
                 privacy_label = 2
-                privacy_coeff = random.uniform(0.11, 0.15)
+                privacy_coeff = random.uniform(*self.config['privacy_pragmatists_coeff_range'])
             else:
                 privacy_label = 3
-                privacy_coeff = random.uniform(0.031, 0.10)
+                privacy_coeff = random.uniform(*self.config['privacy_unconcerned_coeff_range'])
 
             # Adjust privacy coefficient to be lower since university is less privacy sensitive?
             # TODO: this doesn't seem to have any implications right now
-            privacy_coeff = 0.9 * privacy_coeff
+            privacy_coeff = self.config['privacy_adjustment_factor'] * privacy_coeff
 
             # Define weights for utility calculation
             # for university scenario we assume that energy consumed is more important than service provided for user
             # and that energy consumed is more important than data collected for IoT device
-            # first is data/service and second is energy
-            weights = [0.2, 0.8]
+            # first is time and second is energy
+            weights = [self.config['time_weight'], self.config['energy_weight']]
 
             self.iot_device.update_weights(weights)
 
@@ -146,7 +152,7 @@ class University:
             self.list_of_users.append(user)
             user_id += 1
 
-            inter_arrival_time = dist.generate_random_samples(lmbd)
+            inter_arrival_time = dist.generate_random_samples(self.lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time

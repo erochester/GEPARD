@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib.patches import Circle
 
 from user import User
+from util import get_config
 
 
 class ShoppingMall:
@@ -19,10 +20,19 @@ class ShoppingMall:
         :param list_of_users: List of all User objects.
         :param iot_device: IoT device object.
         """
+        self.config = get_config()['ShoppingMall']  # Load shopping mall-specific config
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         # The radius of the shopping mall is assumed to be 120 meters
-        self.radius = 120
+        self.radius = self.config['radius']
+        self.last_arrival = self.config['last_arrival']
+        # Arrival lambda is assumed from shopping mall data analysis papers
+        # ref: https://arxiv.org/pdf/1905.13098.pdf
+        # customers per min.
+        self.lmbd = self.config['lambda']  # User arrival rate per minute
+        self.multiplier = self.config['multiplier']
+        self.speed_min = self.config['speed_min']
+        self.speed_max = self.config['speed_max']
         self.network = network
 
     def generate_scenario(self, dist):
@@ -31,16 +41,6 @@ class ShoppingMall:
         Similarly, generates the IoT device object.
         :param dist: Distribution used to generate user inter-arrival events.
         """
-        # The shopping mall works 10 am to 9 pm which results in 11 hours of operation
-        # We assume that there are no arrivals in the last hour of operation, so we generate users from 10 am to 8 pm
-        last_arrival = 10 * 60
-        # last_arrival = 2
-
-        # Arrival lambda is assumed from shopping mall data analysis papers
-        # ref: https://arxiv.org/pdf/1905.13098.pdf
-        # customers per min.
-        lmbd = 2.55
-
         # Initialize arrival time
         arrival_time = 0
 
@@ -48,9 +48,9 @@ class ShoppingMall:
         user_id = 0
 
         # New arrivals come until 8 pm
-        while arrival_time <= last_arrival:
+        while arrival_time <= self.last_arrival:
             # Generate the speed (m/min.)
-            speed = np.random.uniform(16.2, 90)
+            speed = self.multiplier * np.random.uniform(self.speed_min, self.speed_max)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -111,22 +111,25 @@ class ShoppingMall:
                         within_comm_range_time = distance / speed
 
             # Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)
-            privacy_coeff = random.choice([1] * 25 + [2] * 55 + [3] * 20)
+            privacy_coeff = random.choice([1] * self.config['privacy_fundamentalists_proportion']
+                                          + [2] * self.config['privacy_pragmatists_proportion']
+                                          + [3] * self.config['privacy_unconcerned_proportion'])
             if privacy_coeff == 1:
-                privacy_coeff = random.uniform(0.001, 0.03)
+                privacy_coeff = random.uniform(*self.config['privacy_fundamentalists_coeff_range'])
                 privacy_label = 1
             elif privacy_coeff == 2:
                 privacy_label = 2
-                privacy_coeff = random.uniform(0.11, 0.15)
+                privacy_coeff = random.uniform(*self.config['privacy_pragmatists_coeff_range'])
             else:
                 privacy_label = 3
-                privacy_coeff = random.uniform(0.031, 0.10)
+                privacy_coeff = random.uniform(*self.config['privacy_unconcerned_coeff_range'])
+
 
             # Define weights for utility calculation
             # for shopping mall scenario we assume that energy consumed is more important than service provided for user
             # but that data collected is more important than energy consumed for IoT device
-            # first is data/service and second is energy
-            weights = [0.8, 0.2]
+            # first is time and second is energy
+            weights = [self.config['time_weight'], self.config['energy_weight']]
 
             self.iot_device.update_weights(weights)
 
@@ -135,7 +138,7 @@ class ShoppingMall:
             self.list_of_users.append(user)
             user_id += 1
 
-            inter_arrival_time = dist.generate_random_samples(lmbd)
+            inter_arrival_time = dist.generate_random_samples(self.lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time

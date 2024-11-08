@@ -7,21 +7,33 @@ from matplotlib.patches import Circle
 
 from user import User
 
+from util import get_config
+
 
 class Hospital:
     """
     Implements the Hospital scenario.
     """
+
     def __init__(self, list_of_users, iot_device, network):
         """
         Initializes all the users, the IoT device and the space size for the scenario.
         :param list_of_users: List of all User objects.
         :param iot_device: IoT device object.
         """
+        self.config = get_config()['Hospital']  # Load hospital-specific config
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         # The hospital radius is assumed to be the smallest, i.e., 40 meters (example of emergency room)
-        self.radius = 40
+        self.radius = self.config['radius']
+        # Simulate a full day (24 hours)
+        self.last_arrival = self.config['last_arrival']
+        # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
+        # patients per min.
+        self.lmbd = self.config['lambda']  # User arrival rate per minute
+        self.multiplier = self.config['multiplier']
+        self.speed_min = self.config['speed_min']
+        self.speed_max = self.config['speed_max']
         self.network = network
 
     def generate_scenario(self, dist):
@@ -30,13 +42,6 @@ class Hospital:
         Similarly, generates the IoT device object.
         :param dist: Distribution used to generate user inter-arrival events.
         """
-        # The hospital works 24/7
-        last_arrival = 24 * 60
-
-        # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
-        # patients per min.
-        lmbd = 0.1584
-
         # Initialize arrival time
         arrival_time = 0
 
@@ -44,10 +49,10 @@ class Hospital:
         user_id = 0
 
         # New arrivals come until midnight as we simulate 1 full day
-        while arrival_time <= last_arrival:
+        while arrival_time <= self.last_arrival:
             # Generate the speed (m/min.)
             # reduce speed by 10% as in hospital people will slow down
-            speed = 0.9 * np.random.uniform(16.2, 90)
+            speed = self.multiplier * np.random.uniform(self.speed_min, self.speed_max)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -108,26 +113,26 @@ class Hospital:
                         within_comm_range_time = distance / speed
 
             # Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)
-            privacy_coeff = random.choice([1] * 25 + [2] * 55 + [3] * 20)
+            privacy_coeff = random.choice([1] * self.config['privacy_fundamentalists_proportion']
+                                          + [2] * self.config['privacy_pragmatists_proportion']
+                                          + [3] * self.config['privacy_unconcerned_proportion'])
             if privacy_coeff == 1:
-                privacy_coeff = random.uniform(0.001, 0.03)
+                privacy_coeff = random.uniform(*self.config['privacy_fundamentalists_coeff_range'])
                 privacy_label = 1
             elif privacy_coeff == 2:
                 privacy_label = 2
-                privacy_coeff = random.uniform(0.11, 0.15)
+                privacy_coeff = random.uniform(*self.config['privacy_pragmatists_coeff_range'])
             else:
                 privacy_label = 3
-                privacy_coeff = random.uniform(0.031, 0.10)
+                privacy_coeff = random.uniform(*self.config['privacy_unconcerned_coeff_range'])
 
-            # Adjust privacy coefficient to be higher since hospital is more sensitive environment
-            # TODO: this doesn't seem to have any implications right now
-            privacy_coeff = 1.5 * privacy_coeff
+            # Adjust privacy coefficient in the more privacy-sensitive hospital environment
+            # TODO: no implications?
+            privacy_coeff = self.config['privacy_adjustment_factor'] * privacy_coeff
 
             # Define weights for utility calculation
-            # for hospital scenario we assume that service provided is more important than energy consumed for user
-            # and that data collected is more important than energy consumed for IoT device
-            # first is data/service and second is energy
-            weights = [0.9, 0.1]
+            # In the hospital scenario, time is far more important than energy
+            weights = [self.config['time_weight'], self.config['energy_weight']]
 
             self.iot_device.update_weights(weights)
 
@@ -136,7 +141,7 @@ class Hospital:
             self.list_of_users.append(user)
             user_id += 1
 
-            inter_arrival_time = dist.generate_random_samples(lmbd)
+            inter_arrival_time = dist.generate_random_samples(self.lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time

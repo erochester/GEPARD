@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.ticker import ScalarFormatter
 
+from util import determine_decimals
+
 
 class ResultProcessor:
     """
@@ -35,7 +37,7 @@ class ResultProcessor:
                 protocol = row["Protocol"]
                 network = row["Network"]
                 scenario = row["Scenario"]
-                user_power = float(row["Total User Power Consumption (W)"])
+                user_power = float(row["Avg User Power Consumption (W)"])
                 owner_power = float(row["Total Owner Power Consumption (W)"])
                 user_time = float(row["Total User Time Spent (s)"])
                 owner_time = float(row["Total Owner Time Spent (s)"])
@@ -133,16 +135,16 @@ class ResultProcessor:
                         owner_stand_utility = [data["owner stand utility"] for data in scenario_data]
 
                         # Calculate the statistics
-                        avg_user_current = round(np.mean(user_power), 2)
-                        avg_owner_current = round(np.mean(owner_power), 2)
-                        avg_user_time = round(np.mean(user_time), 2)
-                        avg_owner_time = round(np.mean(owner_time), 2)
+                        avg_user_current = round(np.mean(user_power), determine_decimals(np.mean(user_power)))
+                        avg_owner_current = round(np.mean(owner_power), determine_decimals(np.mean(owner_power)))
+                        avg_user_time = round(np.mean(user_time), determine_decimals(np.mean(user_time)))
+                        avg_owner_time = round(np.mean(owner_time), determine_decimals(np.mean(owner_time)))
                         avg_consent = round(np.mean(consents), 2)
-                        avg_runtime = round(np.mean(runtimes), 2)
-                        avg_user_utility = round(np.mean(user_utility), 2)
-                        avg_owner_utility = round(np.mean(owner_utility), 2)
-                        avg_user_stand_utility = round(np.mean(user_stand_utility), 2)
-                        avg_owner_stand_utility = round(np.mean(owner_stand_utility), 2)
+                        avg_runtime = round(np.mean(runtimes), determine_decimals(np.mean(runtimes)))
+                        avg_user_utility = round(np.mean(user_utility), determine_decimals(np.mean(user_utility)))
+                        avg_owner_utility = round(np.mean(owner_utility), determine_decimals(np.mean(owner_utility)))
+                        avg_user_stand_utility = round(np.mean(user_stand_utility), determine_decimals(np.mean(user_stand_utility)))
+                        avg_owner_stand_utility = round(np.mean(owner_stand_utility), determine_decimals(np.mean(owner_stand_utility)))
 
                         if min(avg_user_current, avg_owner_current) < min_power:
                             min_power = min(avg_user_current, avg_owner_current)
@@ -174,38 +176,44 @@ class ResultProcessor:
                             best_network_stand_utility = network
                             best_scenario_stand_utility = scenario
 
-                        min_user_current = round(np.min(user_power), 2)
-                        min_owner_current = round(np.min(owner_power), 2)
-                        min_user_time = round(np.min(user_time), 2)
-                        min_owner_time = round(np.min(owner_time), 2)
+                        min_user_current = round(np.min(user_power), determine_decimals(np.min(user_power)))
+                        min_owner_current = round(np.min(owner_power), determine_decimals(np.min(owner_power)))
+                        min_user_time = round(np.min(user_time), determine_decimals(np.min(user_time)))
+                        min_owner_time = round(np.min(owner_time), determine_decimals(np.min(owner_time)))
                         min_consent = round(np.min(consents), 2)
-                        min_runtime = round(np.min(runtimes), 2)
-                        min_user_utility = round(np.min(user_utility), 2)
-                        min_owner_utility = round(np.min(owner_utility), 2)
-                        min_user_stand_utility = round(np.min(user_stand_utility), 2)
-                        min_owner_stand_utility = round(np.min(owner_stand_utility), 2)
+                        min_runtime = round(np.min(runtimes), determine_decimals(np.min(runtimes)))
+                        min_user_utility = round(np.min(user_utility), determine_decimals(np.min(user_utility)))
+                        min_owner_utility = round(np.min(owner_utility), determine_decimals(np.min(owner_utility)))
+                        min_user_stand_utility = round(np.min(user_stand_utility),
+                                                       determine_decimals(np.min(user_stand_utility)))
+                        min_owner_stand_utility = round(np.min(owner_stand_utility),
+                                                        determine_decimals(np.min(owner_stand_utility)))
 
-                        max_user_current = round(np.max(user_power), 2)
-                        max_owner_current = round(np.max(owner_power), 2)
-                        max_user_time = round(np.max(user_time), 2)
-                        max_owner_time = round(np.max(owner_time), 2)
+                        max_user_current = round(np.max(user_power), determine_decimals(np.max(user_power)))
+                        max_owner_current = round(np.max(owner_power), determine_decimals(np.max(owner_power)))
+                        max_user_time = round(np.max(user_time), determine_decimals(np.max(user_time)))
+                        max_owner_time = round(np.max(owner_time), determine_decimals(np.max(owner_time)))
                         max_consent = round(np.max(consents), 2)
-                        max_runtime = round(np.max(runtimes), 2)
-                        max_user_utility = round(np.max(user_utility), 2)
-                        max_owner_utility = round(np.max(owner_utility), 2)
-                        max_user_stand_utility = round(np.max(user_stand_utility), 2)
-                        max_owner_stand_utility = round(np.max(owner_stand_utility), 2)
+                        max_runtime = round(np.max(runtimes), determine_decimals(np.max(runtimes)))
+                        max_user_utility = round(np.max(user_utility), determine_decimals(np.max(user_utility)))
+                        max_owner_utility = round(np.max(owner_utility), determine_decimals(np.max(owner_utility)))
+                        max_user_stand_utility = round(np.max(user_stand_utility),
+                                                       determine_decimals(np.max(user_stand_utility)))
+                        max_owner_stand_utility = round(np.max(owner_stand_utility),
+                                                        determine_decimals(np.max(owner_stand_utility)))
 
-                        std_user_current = round(np.std(user_power), 2)
-                        std_owner_current = round(np.std(owner_power), 2)
-                        std_user_time = round(np.std(user_time), 2)
-                        std_owner_time = round(np.std(owner_time), 2)
+                        std_user_current = round(np.std(user_power), determine_decimals(np.std(user_power)))
+                        std_owner_current = round(np.std(owner_power), determine_decimals(np.std(owner_power)))
+                        std_user_time = round(np.std(user_time), determine_decimals(np.std(user_time)))
+                        std_owner_time = round(np.std(owner_time), determine_decimals(np.std(owner_time)))
                         std_consent = round(np.std(consents), 2)
-                        std_runtime = round(np.std(runtimes), 2)
-                        std_user_utility = round(np.std(user_utility), 2)
-                        std_owner_utility = round(np.std(owner_utility), 2)
-                        std_user_stand_utility = round(np.std(user_stand_utility), 2)
-                        std_owner_stand_utility = round(np.std(owner_stand_utility), 2)
+                        std_runtime = round(np.std(runtimes), determine_decimals(np.std(runtimes)))
+                        std_user_utility = round(np.std(user_utility), determine_decimals(np.std(user_utility)))
+                        std_owner_utility = round(np.std(owner_utility), determine_decimals(np.std(owner_utility)))
+                        std_user_stand_utility = round(np.std(user_stand_utility),
+                                                       determine_decimals(np.std(user_stand_utility)))
+                        std_owner_stand_utility = round(np.std(owner_stand_utility),
+                                                        determine_decimals(np.std(owner_stand_utility)))
 
                         # Write the data to the file
                         writer.writerow(
@@ -232,7 +240,7 @@ class ResultProcessor:
                 f.write(f"Protocol: {best_protocol}\n")
                 f.write(f"Network: {best_network}\n")
                 f.write(f"Scenario: {best_scenario}\n")
-                f.write(f"Power Consumption: {min_power:.2f}\n")
+                f.write(f"Power Consumption: {min_power:.{determine_decimals(min_power)}f}\n")
                 f.write("\n")
 
                 # Write the combination with the highest user consent to the file
@@ -248,7 +256,7 @@ class ResultProcessor:
                 f.write(f"Protocol: {best_protocol_time}\n")
                 f.write(f"Network: {best_network_time}\n")
                 f.write(f"Scenario: {best_scenario_time}\n")
-                f.write(f"Time Taken: {min_time:.2f}\n")
+                f.write(f"Time Taken: {min_time:.{determine_decimals(min_time)}f}\n")
                 f.write("\n")
 
                 # Write the combination with the highest user utility to the file
@@ -256,7 +264,7 @@ class ResultProcessor:
                 f.write(f"Protocol: {best_protocol_utility}\n")
                 f.write(f"Network: {best_network_utility}\n")
                 f.write(f"Scenario: {best_scenario_utility}\n")
-                f.write(f"User Utility: {max_user_utility_test:.2f}\n")
+                f.write(f"User Utility: {max_user_utility_test:.{determine_decimals(max_user_utility_test)}f}\n")
                 f.write("\n")
 
                 # Write the combination with the highest user standardized utility to the file
@@ -264,7 +272,7 @@ class ResultProcessor:
                 f.write(f"Protocol: {best_protocol_stand_utility}\n")
                 f.write(f"Network: {best_network_stand_utility}\n")
                 f.write(f"Scenario: {best_scenario_stand_utility}\n")
-                f.write(f"User Utility: {max_user_stand_utility_test:.2f}\n")
+                f.write(f"User Utility: {max_user_stand_utility_test:.{determine_decimals(max_user_stand_utility_test)}f}\n")
                 f.write("\n")
 
             # Close the file
@@ -282,7 +290,7 @@ class ResultProcessor:
         groups = df.groupby(['Protocol', 'Network', 'Scenario'])
 
         # Define the metrics you want to plot
-        metrics = ['Total User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Total User Time Spent (s)',
+        metrics = ['Avg User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Total User Time Spent (s)',
                    'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'Raw Average User Utility',
                    'Raw Total Owner Utility', 'Normalized Average User Utility',
                    'Normalized Total Owner Utility']

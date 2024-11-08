@@ -1,3 +1,5 @@
+from util import get_config
+
 class ZigBee:
     """
     Implements ZigBee networks.
@@ -8,9 +10,10 @@ class ZigBee:
         """
         Specifies operating voltage, ACK packet size and effective communication distance.
         """
-        self.voltage = 3.6  # V
-        self.ack_size = 65  # bytes
-        self.comm_distance = 100  # m effective communication distance for ZigBee
+        self.config = get_config()['Zigbee']  # load Zigbee config
+        self.voltage = self.config['voltage']  # V
+        self.ack_size = self.config['ack_size']  # bytes
+        self.comm_distance = self.config['comm_distance']  # m effective communication distance for ZigBee
 
     def startup(self):
         """
@@ -58,15 +61,11 @@ class ZigBee:
         """
         t_tx = (8 * (31 + payload)) / 250000  # s, where 250000 is the data rate in bps
 
-        t_onoff = 0.013  # s is the wake-up and turn off the transceiver and transmit data to MCU time
-
-        i_onoff = 0.013  # A
-
-        t_list = 0.0029  # s is the time to tune required to access the radio channel (CSMA/CA) and receive the ACK
-
-        i_list = 0.0325  # A
-
-        i_tx = 0.0305  # A
+        t_onoff = self.config['t_onoff']
+        i_onoff = self.config['i_onoff']
+        t_list = self.config['t_list']
+        i_list = self.config['i_list']
+        i_tx = self.config['i_tx']
 
         total_duration = t_tx + t_onoff + t_list
 
@@ -84,15 +83,13 @@ class ZigBee:
         """
         t_rx = (8 * (31 + payload)) / 250000  # s
 
-        t_onoff = 0.013  # s is the wake-up and turn off the transceiver and transmit data to MCU time
-
-        i_onoff = 0.013  # A
-
-        i_rx = 0.0325  # A
+        t_onoff = self.config['t_onoff']
+        i_onoff = self.config['i_onoff']
+        i_rx = self.config['i_rx']
 
         t_tx = (8 * (31 + 11)) / 250000  # s, where 250000 is the data rate in bps and 11 bytes is the ACK
 
-        i_tx = 0.0305  # A
+        i_tx = self.config['i_tx']
 
         # No need for listening because 802.15.4 sets up a constant 'quiet' period after a transmission
 

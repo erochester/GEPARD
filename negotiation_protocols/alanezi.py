@@ -5,7 +5,7 @@ import random
 import sys
 import logging
 from functools import reduce
-import numpy as np
+from util import get_config
 
 
 class Alanezi:
@@ -19,6 +19,9 @@ class Alanezi:
         :param network: network type (e.g., BLE)
         """
         self.network = network
+        self.config = get_config()['Alanezi']  # load alanezi config
+        self.user_pp_size = self.config['user_pp_size']
+        self.owner_pp_size = self.config['owner_pp_size']
 
     def run(self, curr_users_list, iot_device):
         """
@@ -30,25 +33,17 @@ class Alanezi:
         :return: Returns total device power and time consumption, as well as the updated user lists.
         """
 
-        # As per the original work, we assume 217 and 639 bytes the sizes of PP
-        # Can be changed to dynamic sizing (create real PPs and collect their size)
-        user_pp_size = 217
-        owner_pp_size = 639
-
         # For now, we assume that the IoT owner precisely knows the user's privacy preferences and
         #  what to offer to them. We can add the estimator further down the line
         #  for now we go through the list of users, offer to them the privacy policies and
         #  see if they consent and if it is after 1 phase or 2 phases
 
-        # first we define the values for privacy dimensions for different policies. (t, r, s, i) as per Alanezi
-        privacy_dim = [(3, 3, 1, 3), (5, 1, 1, 1), (2, 2, 2, 2), (2, 1, 2, 2)]
-        # these are used in calculating utility when offering PP to a user
-        # we define these as an example values.
+        privacy_dim = self.config['privacy_dim']
         # For example, privacy_dim[2] can be imagined as:
-        # Data Type(t): Detailed user behavior data(e.g., clickstreams, purchase history)
-        # Retention(r): 2 years
-        # Sharing(s): Shared with 2 third parties
-        # Inference(i): Extensive inference(e.g., behavioral profiling, predictive analytics)
+        # Data Type(t): Extremely detailed user behavior data(e.g., clickstreams, purchase history)
+        # Retention(r): 1 year
+        # Sharing(s): Shared with 1 third parties
+        # Inference(i): Minimum inference(e.g., behavioral profiling, predictive analytics)
 
         # remove users that are > x m away from IoT device (outside the communication range, but not sensing)
         # For example, 50 meters for BLE
@@ -62,12 +57,15 @@ class Alanezi:
 
         logging.debug("Applicable users: %s", [u.id_ for u in applicable_users])
 
+        self.gamma_ranges = self.config['gamma_ranges']
+        self.pragmatist_thresholds = self.config['pragmatist_thresholds']
+
         # if no applicable users left we return
         if applicable_users:
             temp_list = []
             for u in applicable_users:
-                # check if user already consented and if not
-                if not u.consent:
+                # check if we tried negotiating already
+                if not u.neg_attempted:
                     # we tried negotiating with the user
                     u.update_neg_attempted()
                     # check the user's privacy label
@@ -75,34 +73,34 @@ class Alanezi:
                         # for fundamentalists, we offer PP4
                         priv_policy = privacy_dim[3]
                         # as per work gamma is a value in range (0.843,1]
-                        gamma = random.uniform(0.843, 1.0)
+                        gamma = random.uniform(*self.gamma_ranges['fundamentalist'])
                         # combination of these values makes sure that only 20.4% of fundamentalists consent
                         util = (-gamma * reduce((lambda x, y: x * y), list(priv_policy))) + sum(list(priv_policy))
                         logging.debug("User %d privacy label %d (fundamentalist) and utility %f", u.id_, u.privacy_label, util)
                         if util >= 0:
                             logging.debug("will consent in 1 round")
                             u.update_consent(1)
-                            # TODO: add to other neg. algos
                             temp_list.append(u)
                     elif u.privacy_label == 2:
                         # for pragmatists, we have potentially 2-phase negotiation
                         # we first offer PP3
                         # priv_policy = privacy_dim[2]
-                        # as per work gamma is a value in range (0.25, 75]
-                        gamma = random.uniform(0.26, 0.75)
-                        logging.debug("User %d privacy label %d (pragmatist) and gamma %d", u.id_, u.privacy_label, gamma)
+                        # as per work gamma is a value in range (0.25, 0.75]
+                        probability = random.uniform(*self.gamma_ranges['pragmatist'])
+                        logging.debug("User %d privacy label %d (pragmatist) and gamma %d", u.id_, u.privacy_label, probability)
                         # if gamma is too large we will not consent
                         # otherwise at least 1 round
-                        if gamma > 0.368:
+                        if probability <= self.pragmatist_thresholds['one_phase']:
                             # single phase consent
                             logging.debug("will consent in 1 round")
                             u.update_consent(1)
                             temp_list.append(u)
-                        else:
+                        elif probability <= self.pragmatist_thresholds['two_phase']:
                             # two phase consent
                             logging.debug("will consent in 2 rounds")
                             u.update_consent(2)
                             temp_list.append(u)
+                        # otherwise the user does not consent
                     else:
                         logging.debug("User %d privacy label %d (unconcerned)", u.id_, u.privacy_label)
                         logging.debug("will consent in 1 round")
@@ -121,7 +119,7 @@ class Alanezi:
 
             if applicable_users:
                 # Create a list of dictionaries containing arguments for the function
-                user_data_list = [{"user_data": user_data, "user_pp_size": user_pp_size, "owner_pp_size": owner_pp_size,
+                user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size, "owner_pp_size": self.owner_pp_size,
                                    "applicable_users": applicable_users,
                                    "iot_device": iot_device}
                                   for user_data in enumerate(applicable_users)]
@@ -221,8 +219,12 @@ class Alanezi:
         # Calculate the latency and energy consumption of device discovery. The values are taken from:
         # https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
         # the discovery includes PP exchange as the first round
-        result = (self.network.network_impl.discovery.ble_model_discovery_get_result_alanezi
-                  (100, 0.9999, 0.25, 5, 2, 0.01, 1000, user_pp_size))
+        if u.consent == 1:
+            result = (self.network.network_impl.discovery.ble_model_discovery_get_result_alanezi
+                      (100, 0.9999, 0.25, 5, 2, 0.01, 1000, user_pp_size))
+        else:
+            result = (self.network.network_impl.discovery.ble_model_discovery_get_result
+                      (100, 0.9999, 0.25, 5, 2, 0.01, 1000))
 
         u.add_to_time_spent(result.discoveryLatency)
         iot_device_time_consumed += result.discoveryLatency
@@ -231,63 +233,116 @@ class Alanezi:
         u.add_to_power_consumed(current_c)
         iot_device_power_consumed += current_c
 
-        # at the end of discovery the device go through connection establishment
-        # as per documentation there is no duration, since it is accounted in the discovery
-        # For user we set periodic scan type
-
-        duration = \
-            (self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
-             (1, 0, 1,
-              0,
-              0.1))
-        u.add_to_time_spent(duration)
-
-        u.add_to_power_consumed(
-            self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
-            (1, 0, 1,
-             0,
-             0.1) / duration)
-
-        duration = \
-            (self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
-             (1, 0, 0,
-              0,
-              0.1))
-        iot_device_time_consumed += duration
-        iot_device_power_consumed += (
-            self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
-            (1, 0, 0,
-             0,
-             0.1) / duration)
+        connection_established = False
 
         # if owner accepts in 1-phase then owner starts sending/collecting the data, and we are done
         # exchanged during device discovery phase
         # if negotiation is 2 phases
-        if u == 2:
+        if u.consent == 2:
+
+            if not connection_established:
+                # at the end of discovery the device go through connection establishment
+                # as per documentation there is no duration, since it is accounted in the discovery
+                # For user we set periodic scan type
+
+                duration = \
+                    (
+                        self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
+                        (1, 0, 1,
+                         0,
+                         0.1))
+                u.add_to_time_spent(duration)
+
+                u.add_to_power_consumed(
+                    self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
+                    (1, 0, 1,
+                     0,
+                     0.1) / duration)
+
+                duration = \
+                    (
+                        self.network.network_impl.connection_establishment.ble_e_model_ce_get_duration_for_connection_procedure
+                        (1, 0, 0,
+                         0,
+                         0.1))
+                iot_device_time_consumed += duration
+                iot_device_power_consumed += (
+                        self.network.network_impl.connection_establishment.ble_e_model_ce_get_charge_for_connection_procedure
+                        (1, 0, 0,
+                         0,
+                         0.1) / duration)
+
+                connection_established = True
+
             # in 2 phase negotiation we start exactly the same way as in 1 phase
             # however now the owner responds with an alternative proposal and waits for the user to reply
             # so two more steps are added
+
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [user_pp_size],
+                                                                                                [0], 3)
+
+            iot_device_time_consumed += duration
+
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                                 [user_pp_size],
+                                                                                                 [0], 3)
+            iot_device_power_consumed += (power_spent / duration)
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [0],
+                                                                                                [user_pp_size], 3)
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                                 [0],
+                                                                                                 [user_pp_size], 3)
+            u.add_to_power_consumed(power_spent / duration)
+            u.add_to_time_spent(duration)
+
 
             # Note that we assume that there is no delay between connection establishment and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it
             # We assume that the user reply is the received PP
             # we call from master point of view because it has Tx first and then Rx which better simulates the behaviour
             duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
-                                                                                                  [owner_pp_size],
-                                                                                                  [owner_pp_size], 3)
-            u.add_to_time_spent(duration)
+                                                                                                [0],
+                                                                                                [owner_pp_size], 3)
+
             iot_device_time_consumed += duration
 
             power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                                 [0],
+                                                                                                 [owner_pp_size], 3)
+            iot_device_power_consumed += (power_spent / duration)
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [owner_pp_size],
+                                                                                                [0], 3)
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
                                                                                                  [owner_pp_size],
+                                                                                                 [0], 3)
+            u.add_to_power_consumed(power_spent / duration)
+            u.add_to_time_spent(duration)
+
+            # Acceptance
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [0],
+                                                                                                [owner_pp_size], 3)
+            u.add_to_time_spent(duration)
+
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                                 [0],
                                                                                                  [owner_pp_size], 3)
             u.add_to_power_consumed(power_spent / duration)
+            duration = self.network.network_impl.connected.ble_e_model_c_get_duration_sequences(1, 0.1, 1,
+                                                                                                [owner_pp_size],
+                                                                                                [0], 3)
+            power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
+                                                                                                 [owner_pp_size],
+                                                                                                 [0], 3)
             iot_device_power_consumed += (power_spent / duration)
+            iot_device_time_consumed += duration
 
-        voltage = 3.3  # We assume that BLE devices operate at 3.3V
         # convert from As to Ws
-        u.power_consumed = u.power_consumed * voltage
-        iot_device.add_to_power_consumed(iot_device_power_consumed * voltage)
+        u.power_consumed = u.power_consumed * self.network.network_impl.voltage
+        iot_device.add_to_power_consumed(iot_device_power_consumed * self.network.network_impl.voltage)
         iot_device.add_to_time_spent(iot_device_time_consumed)
 
     def zigbee_negotiation(self, user_pp_size, owner_pp_size, u, iot_device):
@@ -312,6 +367,8 @@ class Alanezi:
         # has to be local not to double count
         iot_device_power_consumed = 0
         iot_device_time_consumed = 0
+
+        # print(f"User %s power consumption at the start of negotiation: %s" % (u.id_, u.power_consumed))
 
         # get the duration and power consumption of startup for the device (Ws, s)
         charge_c, dc = self.network.network_impl.startup()
@@ -355,7 +412,7 @@ class Alanezi:
         # the PP exchange occurred during device discovery
 
         # if negotiation is 2 phases
-        if u == 2:
+        if u.consent == 2:
             # in 2 phase negotiation we start exactly the same way as in 1 phase
             # however now the owner responds with an alternative proposal and waits for the user to reply
             # so two more steps are added
@@ -380,8 +437,48 @@ class Alanezi:
             u.add_to_power_consumed(charge_tx)
             iot_device_power_consumed += charge_rx
 
+            # mote accepts PP
+            charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            u.add_to_time_spent(d_tx)
+            iot_device_time_consumed += d_rx
+            u.add_to_power_consumed(charge_tx)
+            iot_device_power_consumed += charge_rx
+
+            # ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+            u.add_to_time_spent(d_rx)
+            iot_device_time_consumed += d_tx
+            u.add_to_power_consumed(charge_rx)
+            iot_device_power_consumed += charge_tx
+
+        else:
+            # the Coordinator sends its consent to the mote
+
+            charge_tx, d_tx = self.network.network_impl.send(owner_pp_size)
+            charge_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
+
+            u.add_to_time_spent(d_rx)
+            iot_device_time_consumed += d_tx
+            u.add_to_power_consumed(charge_rx)
+            iot_device_power_consumed += charge_tx
+
+            # Send ACK
+            charge_tx, d_tx = self.network.network_impl.send(self.network.network_impl.ack_size)
+            charge_rx, d_rx = self.network.network_impl.receive(self.network.network_impl.ack_size)
+
+            u.add_to_time_spent(d_tx)
+            iot_device_time_consumed += d_rx
+            u.add_to_power_consumed(charge_tx)
+            iot_device_power_consumed += charge_rx
+
         iot_device.add_to_time_spent(iot_device_time_consumed)
         iot_device.add_to_power_consumed(iot_device_power_consumed)
+
+        # print(f"User %s power consumption at the end of negotiation: %s" % (u.id_, u.power_consumed))
 
     def lora_negotiation(self, user_pp_size, owner_pp_size, u, iot_device):
         """
@@ -416,10 +513,8 @@ class Alanezi:
         u.add_to_power_consumed(power_tx)
         iot_device_power_consumed += power_rx
 
-        # if owner accepts in 1-phase then owner starts sending/collecting the data and we are done
-
         # if negotiation is 2 phases
-        if u == 2:
+        if u.consent == 2:
             # in 2 phase negotiation we start exactly the same way as in 1 phase
             # however now the owner responds with an alternative proposal and waits for the user to reply
             # so two more steps are added
@@ -427,13 +522,15 @@ class Alanezi:
             # Gateway (owner) sends alternative offer
             power_tx, d_tx = self.network.network_impl.send(owner_pp_size)
 
+            # print("IoT device power consumed: ", power_tx)
+
             # LoRa node reception
             power_rx, d_rx = self.network.network_impl.receive(owner_pp_size)
 
-            u.add_to_time_spent(d_tx)
-            iot_device_time_consumed += d_rx
-            u.add_to_power_consumed(power_tx)
-            iot_device_power_consumed += power_rx
+            u.add_to_time_spent(d_rx)
+            iot_device_time_consumed += d_tx
+            u.add_to_power_consumed(power_rx)
+            iot_device_power_consumed += power_tx
 
             # Acceptance
             # LoRa device (user) sends back the same PP it received
@@ -446,6 +543,13 @@ class Alanezi:
             iot_device_time_consumed += d_rx
             u.add_to_power_consumed(power_tx)
             iot_device_power_consumed += power_rx
+        else:
+            # if owner accepts in 1-phase then owner replies with the same PP
+            # and starts sending/collecting the data and we are done
+            u.add_to_time_spent(d_rx)
+            iot_device_time_consumed += d_tx
+            u.add_to_power_consumed(power_rx)
+            iot_device_power_consumed += power_tx
 
         iot_device.add_to_power_consumed(iot_device_power_consumed)
         iot_device.add_to_time_spent(iot_device_time_consumed)
