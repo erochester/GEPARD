@@ -124,7 +124,6 @@ class ShoppingMall:
                 privacy_label = 3
                 privacy_coeff = random.uniform(*self.config['privacy_unconcerned_coeff_range'])
 
-
             # Define weights for utility calculation
             # for shopping mall scenario we assume that energy consumed is more important than service provided for user
             # but that data collected is more important than energy consumed for IoT device
@@ -163,7 +162,7 @@ class ShoppingMall:
 
     def plot_scenario(self):
         """
-        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        Method used to visualize the scenario, i.e., space, user arrival/departure points and
         trajectory across the space.
         """
         fig, ax = plt.subplots()

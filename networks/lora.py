@@ -1,6 +1,7 @@
 import math
 from util import get_config
 
+
 class LoRa:
     """
     Implements LoRa networks. We assume Class A LoRa device.
@@ -10,7 +11,7 @@ class LoRa:
         Initialize the maximum payload, assumed maximum effective communication distance, voltage
         and current consumption and other variables.
         """
-        self.config = get_config()['Lora'] # load lora config
+        self.config = get_config()['Lora']  # load lora config
         self.voltage = self.config['voltage']
         self.i_rx = self.config['i_rx']  # mA
         self.cr = self.config['cr']
@@ -18,7 +19,7 @@ class LoRa:
         # are adjusted during each send and receive
         self.lora_max_payload = self.config['lora_max_payload']  # bytes
         self.sf = self.config['sf']
-        self.bw = self.config['bw'] # kHz
+        self.bw = self.config['bw']  # kHz
         self.i_tx = self.config['i_tx']  # mA
         self.comm_distance = self.config['comm_distance']  # m assume 10 km for lora
 
@@ -40,7 +41,7 @@ class LoRa:
         if packet_num > 1:
             while payload - self.lora_max_payload > 0:
                 payload = payload - self.lora_max_payload
-                n_phy = 8 + max(math.ceil((28 + 8 * (payload) + 4 * self.sf) /
+                n_phy = 8 + max(math.ceil((28 + 8 * payload + 4 * self.sf) /
                                           (4 * self.sf)) * (self.cr + 4), 0)
                 t_phy = t_sym * n_phy
                 t_temp_tx = t_pre + t_phy
@@ -73,7 +74,7 @@ class LoRa:
         if packet_num > 1:
             while payload - self.lora_max_payload > 0:
                 payload = payload - self.lora_max_payload
-                n_phy = 8 + max(math.ceil((28 + 8 * (self.lora_max_payload) + 4 * self.sf) /
+                n_phy = 8 + max(math.ceil((28 + 8 * self.lora_max_payload + 4 * self.sf) /
                                           (4 * self.sf)) * (self.cr + 4), 0)
                 t_phy = t_sym * n_phy
                 t_temp_tx = t_pre + t_phy

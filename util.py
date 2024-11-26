@@ -10,33 +10,43 @@ from scipy.optimize import fsolve
 import yaml
 
 
-# Load configuration from the YAML file only once
 def load_config(file_path='config.yaml'):
+    """
+    Load configuration from the YAML file only once
+    :param file_path: YAML config file path (config.yaml)
+    :return: config file Python object
+    """
     with open(file_path, 'r') as config_file:
         config = yaml.safe_load(config_file)
     return config
 
+
 # Store configuration globally
 _config = None
 
+
 def get_config():
+    """
+    Get config Python object
+    :return: config Python object
+    """
     global _config
     if _config is None:
         _config = load_config()  # Load config on first access
     return _config
 
+
 def calc_utility(time, energy, weights):
     """
     Calculate the utility of the device
-    Use multi-attribute utility function that has been logarithmically transformed (account for time, energy and weights).
+    Use multi-attribute utility function that has been logarithmically transformed
+    (account for time, energy and weights).
     :param time: Represents how long the user will be in environment (s).
     :param energy: Represents current power consumption (W).
     :param weights: Represents the importance of time left vs power consumption.
     :return: Estimated utility.
     """
     k = 100  # scaling factor
-
-    # TODO: added weights[1] see the chnges
 
     utility = k * (weights[0] * np.log(1 + time) / weights[1] * np.log(1 + energy))
     # utility = k * np.log(1 + time) / np.log(1 + energy) # alternative method for unweighted utility calculations
@@ -195,7 +205,7 @@ def determine_decimals(value):
         return min(10, abs(int(np.floor(np.log10(abs(value))))) + 2)
 
 
-class Distribution():
+class Distribution:
     """
     Class for different distribution implementation.
     Currently, implements only Poisson arrival process.
@@ -211,7 +221,7 @@ class Distribution():
     def generate_random_samples(self, rate):
         """
         Generate random samples from the specified distribution.
-        :param rate: Rate parameter (\lambda in case of Poisson).
+        :param rate: Rate parameter (lambda in case of Poisson).
         :return: Random inter-arrival time sample.
         """
         if self.distribution_type == "poisson":
@@ -257,19 +267,40 @@ def calc_norm_utility(data, is_iot_device):
                 data)
 
 
-# Define the PDF DF_w^v(x) for the uniform distribution U
-def DF_w_v(x, a, b):
+def df_w_v(x, a, b):
+    """
+    Define the PDF df_w^v(x) for the uniform distribution U(a, b).
+
+    :param x: The point at which the PDF is evaluated. It can be any real number.
+    :param a: The lower bound of the uniform distribution.
+    :param b: The upper bound of the uniform distribution.
+    :return: The value of the PDF at the point `x`.
+    If `x` is within the range [a, b], the value is 1 / (b - a), otherwise, it returns 0.
+    """
     if a <= x <= b:
         return 1 / (b - a)
     else:
         return 0
 
 
-# Define the integral function to solve for z
 def integral_function(z, a, b, c_w):
+    """
+    Define the equation to solve for z by computing the integral of the weighted PDF.
+    :param z: The lower limit of the integral.
+    :param a: The lower bound of the uniform distribution.
+    :param b: The upper bound of the uniform distribution.
+    :param c_w: A constant value to compare the integral result against in order to solve for z.
+    In our case the elicitation cost.
+    :return: The equation to solve for: integral_value - c(w) = 0
+    """
     # Define the integrand
     def integrand(x):
-        return (x - z) * DF_w_v(x, a, b)
+        """
+        The integrand function to be integrated.
+        :param x: The variable of integration.
+        :return: The value of the integrand.
+        """
+        return (x - z) * df_w_v(x, a, b)
 
     # Compute the integral from z to b
     integral_value, _ = quad(integrand, z, b)
@@ -278,8 +309,19 @@ def integral_function(z, a, b, c_w):
     return integral_value - c_w
 
 
-# Solve for z using fsolve
 def solve_for_z(a, b, c_w):
+    """
+    Solve for z using the numerical solver `fsolve`.
+    This function uses `fsolve` to solve the equation defined by the integral function. The goal
+    is to find a value of `z` such that the integral value is equal to the constant `c_w`.
+
+    :param a: The lower bound of the uniform distribution.
+    :param b: The upper bound of the uniform distribution.
+    :param c_w: A constant value that the result of the integral is compared against, i.e., elicitation cost.
+
+    :return: The value of `z` that satisfies the equation defined by the integral function.
+    """
+
     # Initial guess for z (start with the midpoint of the range)
     z_initial_guess = (a + b) / 2
 

@@ -22,6 +22,8 @@ class Alanezi:
         self.config = get_config()['Alanezi']  # load alanezi config
         self.user_pp_size = self.config['user_pp_size']
         self.owner_pp_size = self.config['owner_pp_size']
+        self.gamma_ranges = {}
+        self.pragmatist_thresholds = {}
 
     def run(self, curr_users_list, iot_device):
         """
@@ -76,7 +78,8 @@ class Alanezi:
                         gamma = random.uniform(*self.gamma_ranges['fundamentalist'])
                         # combination of these values makes sure that only 20.4% of fundamentalists consent
                         util = (-gamma * reduce((lambda x, y: x * y), list(priv_policy))) + sum(list(priv_policy))
-                        logging.debug("User %d privacy label %d (fundamentalist) and utility %f", u.id_, u.privacy_label, util)
+                        logging.debug("User %d privacy label %d (fundamentalist) and utility %f",
+                                      u.id_, u.privacy_label, util)
                         if util >= 0:
                             logging.debug("will consent in 1 round")
                             u.update_consent(1)
@@ -87,7 +90,8 @@ class Alanezi:
                         # priv_policy = privacy_dim[2]
                         # as per work gamma is a value in range (0.25, 0.75]
                         probability = random.uniform(*self.gamma_ranges['pragmatist'])
-                        logging.debug("User %d privacy label %d (pragmatist) and gamma %d", u.id_, u.privacy_label, probability)
+                        logging.debug("User %d privacy label %d (pragmatist) and gamma %d",
+                                      u.id_, u.privacy_label, probability)
                         # if gamma is too large we will not consent
                         # otherwise at least 1 round
                         if probability <= self.pragmatist_thresholds['one_phase']:
@@ -119,7 +123,8 @@ class Alanezi:
 
             if applicable_users:
                 # Create a list of dictionaries containing arguments for the function
-                user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size, "owner_pp_size": self.owner_pp_size,
+                user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size,
+                                   "owner_pp_size": self.owner_pp_size,
                                    "applicable_users": applicable_users,
                                    "iot_device": iot_device}
                                   for user_data in enumerate(applicable_users)]
@@ -149,7 +154,8 @@ class Alanezi:
         iot_device = args["iot_device"]
 
         if u.consent == 0:
-            logging.error("Something went wrong in Alanezi. There is a user that has not consented but we try to process them.")
+            (logging.error
+             ("Something went wrong in Alanezi. There is a user that has not consented but we try to process them."))
             exit(-1)
 
         # check if the current user is going to negotiate:
@@ -272,6 +278,7 @@ class Alanezi:
                          0,
                          0.1) / duration)
 
+                # TODO: Think about this?
                 connection_established = True
 
             # in 2 phase negotiation we start exactly the same way as in 1 phase
@@ -296,7 +303,6 @@ class Alanezi:
                                                                                                  [user_pp_size], 3)
             u.add_to_power_consumed(power_spent / duration)
             u.add_to_time_spent(duration)
-
 
             # Note that we assume that there is no delay between connection establishment and sending first packet
             # after connection establishment the owner sends the proposal and the user receives it

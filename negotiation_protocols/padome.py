@@ -30,6 +30,10 @@ class Padome:
         self.owner_pp_size = self.config['owner_pp_size']
         self.neg_value = self.config['neg_value']
         self.neg_range = self.config['neg_range']
+        self.deadline_factors = {}
+        self.privacy_type_distribution = {}
+        self.response_likelihood = {}
+        self.privacy_weights = {}
 
     def run(self, curr_users_list, iot_device):
         """
@@ -65,10 +69,12 @@ class Padome:
                 applicable_users.append(u)
 
         # applicable_users = [u for u in applicable_users if not u.neg_attempted]
+        deadline = 0
 
         if applicable_users:
             # Dynamically calculate the negotiation deadline
-            deadline = self.calculate_dynamic_deadline(applicable_users, iot_device, self.user_pp_size, self.owner_pp_size)
+            deadline = self.calculate_dynamic_deadline(applicable_users, iot_device, self.user_pp_size,
+                                                       self.owner_pp_size)
 
         for user in applicable_users:
             # for each user determine the number of negotiation rounds based on the proposed negotiation algorithm
@@ -79,12 +85,13 @@ class Padome:
 
         logging.debug("Applicable users: %s", [u.id_ for u in applicable_users])
 
-        for user in applicable_users:
+        for _ in applicable_users:
             logging.debug("Applicable users that will consent: %s", [u.id_ for u in applicable_users])
 
             if applicable_users:
                 # Create a list of dictionaries containing arguments for the function
-                user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size, "owner_pp_size": self.owner_pp_size,
+                user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size,
+                                   "owner_pp_size": self.owner_pp_size,
                                    "applicable_users": applicable_users,
                                    "iot_device": iot_device}
                                   for user_data in enumerate(applicable_users)]
@@ -104,6 +111,8 @@ class Padome:
         Calculate the negotiation deadline dynamically based on several factors.
         :param applicable_users: List of users applicable for negotiation.
         :param iot_device: IoT device object.
+        :param user_pp_size: User PP size.
+        :param owner_pp_size: Owner PP size.
         :return: Returns a dynamically calculated deadline.
         """
         self.deadline_factors = self.config['deadline_factors']
@@ -124,7 +133,8 @@ class Padome:
 
         # Adjust for user PP sizes if necessary (larger PP = more rounds)
         pp_size_factor = (min(user_pp_size, owner_pp_size) / max(owner_pp_size,
-                                                                 user_pp_size)) * 1.5  # Scales up to 1.5 additional rounds
+                                                                 user_pp_size)) * 1.5
+        # Scales up to 1.5 additional rounds
 
         # Combine all factors to calculate the deadline
         dynamic_deadline = base_deadline + user_count_factor + network_factor + distance_factor + pp_size_factor
@@ -140,6 +150,8 @@ class Padome:
         :param user: current user in the environment (Users object).
         :param iot_device: IoT device object.
         :param curr_users_list: list of current users in the environment (Users object).
+        :param user_pp_size: User PP size.
+        :param deadline: Deadline for negotiations.
         """
 
         # Number of rounds
@@ -173,12 +185,7 @@ class Padome:
 
             # Step 2: Elicit opponent model and consensus building
             if len(curr_users_list) > 1:
-                # tmp = user.power_consumed
-
                 self.elicit_opponent_model(user, [u for u in curr_users_list if u != user], user_pp_size)
-                # if user.power_consumed != tmp:
-                #     print(f"Elicit opponent model for user {user.id_}. Their power consumption before elicitation is {tmp}.")
-                #     print(f"Their power consumption after elicitation is {user.power_consumed}.")
 
             # Step 3: Elicit user preferences
             self.elicit_user_preferences(user)
@@ -226,7 +233,8 @@ class Padome:
                 offered_before.add(best_offer)
                 user.neg_attempted = True
                 # check if the offer will be accepted
-                # find best_offer in iot.offers, get its probability and see if will be accepted or rejected (using random.random)
+                # find best_offer in iot.offers, get its probability and see if will be accepted or rejected
+                # (using random.random)
                 offer_accepted = self.check_offer(iot_device, best_offer)
                 # Here you could add logic to modify or refine the offer based on the negotiation strategy
                 if offer_accepted:
@@ -254,12 +262,22 @@ class Padome:
         # save number of rounds in consent variable
         user.consent = num_rounds
 
-    # Define the function probability*utility + (1 - probability)*aspiration_value
     def calculate_offer_value(self, value, probability):
+        """
+        Define the function probability*utility + (1 - probability)*aspiration_value
+        :param value: Utility/value of an offer.
+        :param probability: Probability of offer acceptance.
+        :return: Calculated offer value.
+        """
         return probability * value + (1 - probability) * self.reservation_value
 
-    # Function to check if the offer is accepted
     def check_offer(self, iot_device, best_offer):
+        """
+        Function to check if the offer is accepted
+        :param iot_device: IoT Device object.
+        :param best_offer: Current best offer.
+        :return: Check if offer is accepted given the offer probability and a random value.
+        """
         # Find best_offer in iot.offers, get its probability and check acceptance
         for offer in iot_device.offers:
             offer_value, offer_probability, offer_elicited = offer
@@ -272,7 +290,8 @@ class Padome:
     def elicit_opponent_model(self, user, curr_user_list, user_pp_size):
         """
         Determine if we want ot elicit other PAs for opponent's model.
-        If yes, elicit the opponent's model from other PAs to better estimate the probability of opponent accepting offers.
+        If yes, elicit the opponent's model from other PAs to better estimate the probability of
+        opponent accepting offers.
         :param user_pp_size:
         :param user:
         :param curr_user_list:
@@ -424,7 +443,8 @@ class Padome:
             expected_info_gain = self.estimate_information_gain(user, curr_user_list)
 
             # Compute expected utility of broadcasting
-            utility = self.calculate_utility(expected_info_gain, estimated_power_cost_user, estimated_time_cost_user, user)
+            utility = self.calculate_utility(expected_info_gain, estimated_power_cost_user,
+                                             estimated_time_cost_user, user)
         else:
             utility = 0
 
@@ -466,6 +486,7 @@ class Padome:
     def estimate_information_gain(self, user, pas_may_respond):
         """
         Calculate the expected information gain based on the number of PAs in the area.
+        :param user: User object.
         :param pas_may_respond: List of PAs that may respond (only length matters here)
         :return: Expected information gain
         """
@@ -523,7 +544,8 @@ class Padome:
         """
         # Example utility function: information gain minus weighted costs
         # Assuming energy is more important than time
-        utility = expected_info_gain - (user.weights[0] * np.log(1 + time_cost) / user.weights[1] * np.log(1 + power_cost))
+        utility = expected_info_gain - (user.weights[0] * np.log(1 + time_cost) /
+                                        user.weights[1] * np.log(1 + power_cost))
         return utility
 
     def get_pa_response(self, offer, pa):
@@ -569,7 +591,6 @@ class Padome:
         Determine if we want ot elicit user for user's preferences (determine the real utility of an offer).
         If yes, elicit the user preferences.
         :param user: current user in the environment (Users object).
-        :param offer_probabilities: Dictionary of offers and their acceptance probabilities.
         """
 
         c_w = self.config['user_elicitation_cost']
@@ -809,7 +830,6 @@ class Padome:
                                                                                                         [user_pp_size], 3)
                     u.add_to_time_spent(duration)
 
-
                     power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
                                                                                                          [0],
                                                                                                          [user_pp_size], 3)
@@ -851,7 +871,6 @@ class Padome:
                     u.add_to_power_consumed(power_spent / duration)
                     u.add_to_time_spent(duration)
 
-
                 if u.consent >= num_rounds + 1:
                     num_rounds += 1
                 else:
@@ -884,7 +903,6 @@ class Padome:
                                                                                                     [0],
                                                                                                     [owner_pp_size], 3)
                 u.add_to_time_spent(duration)
-
 
                 power_spent = self.network.network_impl.connected.ble_e_model_c_get_charge_sequences(1, 0.1, 1,
                                                                                                      [0],

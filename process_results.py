@@ -10,6 +10,8 @@ from matplotlib.ticker import ScalarFormatter
 
 from util import determine_decimals
 
+from typing import Dict
+
 
 class ResultProcessor:
     """
@@ -33,20 +35,21 @@ class ResultProcessor:
         with (open(filename, "r") as csvfile):
             reader = csv.DictReader(csvfile)
             for row in reader:
+                row: Dict[str, str]  # Annotate row as a dictionary
                 # Extract the fields from the row
-                protocol = row["Protocol"]
-                network = row["Network"]
-                scenario = row["Scenario"]
-                user_power = float(row["Avg User Power Consumption (W)"])
-                owner_power = float(row["Total Owner Power Consumption (W)"])
-                user_time = float(row["Total User Time Spent (s)"])
-                owner_time = float(row["Total Owner Time Spent (s)"])
-                consent = float(row["Consent Percentage (%)"])
-                runtime = float(row["Total runtime (min)"])
-                user_utility = float(row["Raw Average User Utility"])
-                owner_utility = float(row["Raw Total Owner Utility"])
-                user_stand_utility = float(row["Normalized Average User Utility"])
-                owner_stand_utility = float(row["Normalized Total Owner Utility"])
+                protocol = row.get("Protocol")
+                network = row.get("Network")
+                scenario = row.get("Scenario")
+                user_power = float(row.get("Avg User Power Consumption (W)", 0.0))
+                owner_power = float(row.get("Total Owner Power Consumption (W)", 0.0))
+                user_time = float(row.get("Total User Time Spent (s)", 0.0))
+                owner_time = float(row.get("Total Owner Time Spent (s)", 0.0))
+                consent = float(row.get("Consent Percentage (%)", 0.0))
+                runtime = float(row.get("Total runtime (min)", 0.0))
+                user_utility = float(row.get("Raw Average User Utility", 0.0))
+                owner_utility = float(row.get("Raw Total Owner Utility", 0.0))
+                user_stand_utility = float(row.get("Normalized Average User Utility", 0.0))
+                owner_stand_utility = float(row.get("Normalized Total Owner Utility", 0.0))
 
                 # Update the dictionaries
                 if protocol not in protocols:
@@ -143,8 +146,10 @@ class ResultProcessor:
                         avg_runtime = round(np.mean(runtimes), determine_decimals(np.mean(runtimes)))
                         avg_user_utility = round(np.mean(user_utility), determine_decimals(np.mean(user_utility)))
                         avg_owner_utility = round(np.mean(owner_utility), determine_decimals(np.mean(owner_utility)))
-                        avg_user_stand_utility = round(np.mean(user_stand_utility), determine_decimals(np.mean(user_stand_utility)))
-                        avg_owner_stand_utility = round(np.mean(owner_stand_utility), determine_decimals(np.mean(owner_stand_utility)))
+                        avg_user_stand_utility = round(np.mean(user_stand_utility),
+                                                       determine_decimals(np.mean(user_stand_utility)))
+                        avg_owner_stand_utility = round(np.mean(owner_stand_utility),
+                                                        determine_decimals(np.mean(owner_stand_utility)))
 
                         if min(avg_user_current, avg_owner_current) < min_power:
                             min_power = min(avg_user_current, avg_owner_current)
@@ -272,7 +277,8 @@ class ResultProcessor:
                 f.write(f"Protocol: {best_protocol_stand_utility}\n")
                 f.write(f"Network: {best_network_stand_utility}\n")
                 f.write(f"Scenario: {best_scenario_stand_utility}\n")
-                f.write(f"User Utility: {max_user_stand_utility_test:.{determine_decimals(max_user_stand_utility_test)}f}\n")
+                f.write(f"User Utility: "
+                        f"{max_user_stand_utility_test:.{determine_decimals(max_user_stand_utility_test)}f}\n")
                 f.write("\n")
 
             # Close the file
@@ -299,7 +305,7 @@ class ResultProcessor:
         num_protocols = len(df['Protocol'].unique())
 
         # Generate a color map with the number of colors equal to the number of unique protocols
-        colors = cm.tab10.colors[:num_protocols]
+        colors = cm.tab10.colors[:num_protocols]   # type: ignore
 
         # Create a dictionary mapping each protocol to a color
         protocol_colors = dict(zip(df['Protocol'].unique(), colors))
@@ -326,8 +332,6 @@ class ResultProcessor:
                 protocol = group_name[0]  # Get the protocol name
                 color = protocol_colors.get(protocol,
                                             'tab:blue')  # Get the color from the color palette, default to blue
-                # ax.bar(group_data.index, scenario_data, yerr=scenario_data.std(), capsize=5,
-                #        color=color)  # Use index instead of 'Scenario'
                 boxprops = dict(color=color, linewidth=2)  # Set color and line width for the boxplot lines
                 mediaprops = dict(color='red', linewidth=3)
                 ax.boxplot(scenario_data, patch_artist=False, boxprops=boxprops, medianprops=mediaprops)

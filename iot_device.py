@@ -11,6 +11,7 @@ class IoTDevice:
         self.power_consumed = 0
         self.time_spent = 0
         self.utility = 0
+        self.standardized_utility = 0
         self.norm_utility = 0
         self.weights = []
         self.offers = []
@@ -32,7 +33,7 @@ class IoTDevice:
     def update_stand_utility(self, standardized_utility):
         """
         Update user utility with the new utility.
-        :param utility: The new utility value.
+        :param standardized_utility: The new utility value.
         """
         self.standardized_utility = standardized_utility
 

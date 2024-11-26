@@ -9,8 +9,10 @@ class User:
         :param speed: Movement speed (m/min.).
         :param arr_loc: Arrival location (x,y).
         :param dep_loc: Departure location (x,y).
-        :param privacy_label: Privacy label (Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)).
-        :param privacy_coeff: Privacy coefficient (depends on label, for example see :func:`~scenarios.hospital.generate_scenario`.
+        :param privacy_label: Privacy label (Privacy fundamentalists (1), privacy pragmatists (2),
+        and privacy unconcerned (3)).
+        :param privacy_coeff: Privacy coefficient (depends on label, for example
+        see :func:`~scenarios.hospital.generate_scenario`).
         :param weights: Weights used in utility calculations (data vs energy trade-off).
         """
         self.id_ = id_
@@ -26,6 +28,7 @@ class User:
         self.dep_time = 0.0
         self.curr_loc = arr_loc
         self.utility = 0.0
+        self.standardized_utility = 0.0
         self.norm_utility = 0.0
         self.power_consumed = 0.0
         self.time_spent = 0.0
@@ -41,14 +44,14 @@ class User:
 
     def update_neg_attempted(self):
         """
-        Update the negotation attempted boolean.
+        Update the negotiation attempted boolean.
         """
         self.neg_attempted = True
 
     def update_stand_utility(self, standardized_utility):
         """
         Update user utility with the new utility.
-        :param utility: The new utility value.
+        :param standardized_utility: The new utility value.
         """
         self.standardized_utility = standardized_utility
 
@@ -115,4 +118,3 @@ class User:
                 f"Consent: {self.consent}, Utility: {self.utility}, Normalized Utility: {self.norm_utility}, "
                 f"Power Consumed: {self.power_consumed}, Time Spent: {self.time_spent}, "
                 f"Weights: {self.weights}, Negotiation Attempted: {self.neg_attempted}")
-

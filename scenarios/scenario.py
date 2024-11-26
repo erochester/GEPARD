@@ -5,6 +5,7 @@ from scenarios.example_scenario import ExampleScenario
 import sys
 import logging
 
+
 class Scenario:
     """
     Metaclass for the Scenarios. Used to unify and call different scenario implementations.
@@ -13,6 +14,7 @@ class Scenario:
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         if scenario == "example_scenario":
+            # TODO: fix
             self.scenario = ExampleScenario(list_of_users, iot_device, network)
         elif scenario == "shopping_mall":
             self.scenario = ShoppingMall(list_of_users, iot_device, network)
@@ -34,7 +36,7 @@ class Scenario:
 
     def plot_scenario(self):
         """
-        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        Method used to visualize the scenario, i.e., space, user arrival/departure points and
         trajectory across the space.
         """
         return self.scenario.plot_scenario()

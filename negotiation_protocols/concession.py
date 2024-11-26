@@ -24,6 +24,8 @@ class Concession:
         self.config = get_config()['Concession']  # load concession config
         self.user_pp_size = self.config['user_pp_size']
         self.owner_pp_size = self.config['owner_pp_size']
+        self.consent_probabilities = {}
+        self.negotiation_steps = 0
 
     def run(self, curr_users_list, iot_device):
         """
@@ -85,13 +87,13 @@ class Concession:
             if highest_utility_user.consent:
                 if self.network.network_type == "ble":
                     # Calculate the power consumption and duration for BLE
-                    self.ble_negotiation(self.user_pp_size, self.owner_pp_size, highest_utility_user, iot_device)
+                    self.ble_negotiation(self.owner_pp_size, highest_utility_user, iot_device)
                 elif self.network.network_type == "zigbee":
                     # Calculate the power consumption and duration for zigbee
-                    self.zigbee_negotiation(self.user_pp_size, self.owner_pp_size, highest_utility_user, iot_device)
+                    self.zigbee_negotiation(self.owner_pp_size, highest_utility_user, iot_device)
                 elif self.network.network_type == "lora":
                     # Calculate the power consumption and duration for zigbee
-                    self.lora_negotiation(self.user_pp_size, self.owner_pp_size, highest_utility_user, iot_device)
+                    self.lora_negotiation(self.owner_pp_size, highest_utility_user, iot_device)
                 else:
                     # raise error and exit
                     logging.info("Invalid network type in concession.py.")
@@ -128,10 +130,9 @@ class Concession:
         # Add user's utility to dictionary
         self.user_utility[user_id] = utility
 
-    def ble_negotiation(self, user_pp_size, owner_pp_size, u, iot_device):
+    def ble_negotiation(self, owner_pp_size, u, iot_device):
         """
         BLE-based Concession negotiation implementation.
-        :param user_pp_size: User privacy policy size in bytes.
         :param owner_pp_size: User privacy policy size in bytes.
         :param u: Current user under negotiation.
         :param iot_device: IoT Device.
@@ -177,10 +178,9 @@ class Concession:
         iot_device.add_to_power_consumed(iot_device_power_consumed * self.network.network_impl.voltage)
         iot_device.add_to_time_spent(iot_device_time_consumed)
 
-    def zigbee_negotiation(self, user_pp_size, owner_pp_size, u, iot_device):
+    def zigbee_negotiation(self, owner_pp_size, u, iot_device):
         """
         ZigBee-based Concession negotiation implementation.
-        :param user_pp_size: User privacy policy size in bytes.
         :param owner_pp_size: User privacy policy size in bytes.
         :param u: Current user under negotiation.
         :param iot_device: IoT device.
@@ -252,10 +252,9 @@ class Concession:
         iot_device.add_to_time_spent(iot_device_time_consumed)
         iot_device.add_to_power_consumed(iot_device_power_consumed)
 
-    def lora_negotiation(self, user_pp_size, owner_pp_size, u, iot_device):
+    def lora_negotiation(self, owner_pp_size, u, iot_device):
         """
         LoRa-based Concession negotiation implementation.
-        :param user_pp_size: User privacy policy size in bytes.
         :param owner_pp_size: User privacy policy size in bytes.
         :param u: Current user under negotiation.
         :param iot_device: IoT device.

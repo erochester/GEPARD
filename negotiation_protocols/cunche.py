@@ -21,6 +21,7 @@ class Cunche:
         self.config = get_config()['Cunche']  # load cunche config
         self.user_pp_size = self.config['user_pp_size']
         self.owner_pp_size = self.config['owner_pp_size']
+        self.consent_thresholds = {}
 
     def run(self, curr_users_list, iot_device):
         """
@@ -88,7 +89,8 @@ class Cunche:
 
         if applicable_users:
             # Create a list of dictionaries containing arguments for the function
-            user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size, "owner_pp_size": self.owner_pp_size,
+            user_data_list = [{"user_data": user_data, "user_pp_size": self.user_pp_size,
+                               "owner_pp_size": self.owner_pp_size,
                                "applicable_users": applicable_users,
                                "iot_device": iot_device}
                               for user_data in enumerate(applicable_users)]
@@ -114,7 +116,8 @@ class Cunche:
         iot_device = args["iot_device"]
 
         if u.consent == 0:
-            logging.error("Something went wrong in Cunche. There is a user that has not consented but we try to process them.")
+            (logging.error
+             ("Something went wrong in Cunche. There is a user that has not consented but we try to process them."))
             exit(-1)
 
         # check if the current user is going to negotiate:
@@ -192,6 +195,7 @@ class Cunche:
             u.add_to_power_consumed(current_c)
             iot_device_power_consumed += current_c
 
+            # TODO: think about this
             connection_established = False
 
         if u.consent == 2:

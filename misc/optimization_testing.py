@@ -2,11 +2,19 @@ from networks.bleemod_python.bleemod_python import BLEEMod
 
 import matplotlib.pyplot as plt
 
+
 def proposal_based_neg(payload, rate, ble):
-    # Sending over 1 hour of packets from IoT device perspective
-    # We assume 1 user per minute on average
-    # Will send ~50% more packets than ABP as per Forst work
-    # Each with discovery and connection establishment
+    """
+    Proposal based negotiation power consumption estimation.
+    Sending over 1 hour of packets from IoT device perspective.
+    We assume 1 user per minute on average.
+    Will send ~50% more packets than ABP as per Forst work.
+    Each with discovery and connection establishment.
+    :param payload: Payload size.
+    :param rate: Packet rate.
+    :param ble: BLE object instance.
+    :return: Total power consumption.
+    """
     total_power_consumed = 0
 
     # 60 (1 user per minute for an hour) but + rate
@@ -30,11 +38,18 @@ def proposal_based_neg(payload, rate, ble):
 
     return total_power_consumed
 
+
 def argument_based_neg(payload, ble):
-    # Sending over 1 hour of packets from IoT device perspective
-    # We assume 1 user per minute on average
-    # Will send ~50% less packets than PBN as per Forst work
-    # Each with discovery and connection establishment
+    """
+    Argument based negotiation power consumption estimation.
+    Sending over 1 hour of packets from IoT device perspective
+    We assume 1 user per minute on average
+    Will send ~50% less packets than PBN as per Forst work
+    Each with discovery and connection establishment
+    :param payload: Payload size.
+    :param ble: BLE object.
+    :return: Total power consumed.
+    """
     total_power_consumed = 0
 
     # 60 (1 user per minute for an hour)
@@ -57,13 +72,12 @@ def argument_based_neg(payload, ble):
 
     return total_power_consumed
 
-if __name__ == "__main__":
-    ble = BLEEMod()
 
+if __name__ == "__main__":
+    ble = BLEEMod(1)
 
     min_payload = 0
     max_payload = 650
-    # max_payload = 200
 
     pbn_power_consumed = []
     abn_power_consumed = []
@@ -72,7 +86,7 @@ if __name__ == "__main__":
     abn_25_power_consumed = []
     abn_50_power_consumed = []
 
-    x = range(min_payload,max_payload,25)
+    x = range(min_payload, max_payload, 25)
 
     for payload in x:
         print("Running for payload size: ", payload)
@@ -90,14 +104,13 @@ if __name__ == "__main__":
         abn_50_power_consumed.append(argument_based_neg(payload + 0.5 * payload, ble))
 
     plt.plot(x, pbn_power_consumed, label="PBN", marker='d', ms=10)
-    plt.plot(x, abn_power_consumed, label="ABN", marker = '^', ms=10)
-    plt.plot(x, pbn_25_power_consumed, label="PBN_25", marker = 'x', ms=10)
+    plt.plot(x, abn_power_consumed, label="ABN", marker='^', ms=10)
+    plt.plot(x, pbn_25_power_consumed, label="PBN_25", marker='x', ms=10)
     plt.plot(x, pbn_50_power_consumed, label="PBN_50", marker='v', ms=10)
-    plt.plot(x, abn_25_power_consumed, label="ABN_25", marker = '+', ms=10)
+    plt.plot(x, abn_25_power_consumed, label="ABN_25", marker='+', ms=10)
     plt.plot(x, abn_50_power_consumed, label="ABN_50", marker='*', ms=10)
 
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15),
-          fancybox=True, shadow=True, ncol=5)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), fancybox=True, shadow=True, ncol=5)
     # plt.grid(color = 'grey', linestyle = '--',)
 
     plt.xlabel("Payload size (Bytes)")

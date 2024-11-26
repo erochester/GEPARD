@@ -1,5 +1,6 @@
 from util import get_config
 
+
 class ZigBee:
     """
     Implements ZigBee networks.

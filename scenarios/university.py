@@ -44,7 +44,6 @@ class University:
         # (we assume 11 arrivals per hour, as per median, in a single AP (for us IoT device)
         # We get ~0.1833 students per minute
 
-
         # Initialize arrival time
         arrival_time = 0
 
@@ -73,9 +72,6 @@ class University:
                 A = (x_d - x_a) ** 2 + (y_d - y_a) ** 2
                 B = 2 * (x_a * (x_d - x_a) + y_a * (y_d - y_a))
                 C = x_a ** 2 + y_a ** 2 - self.network.network_impl.comm_distance ** 2
-
-                # print("Arrival and departure: ", (x_a, y_a), (x_d, y_d))
-                # print("A, B and C: ", A, B, C)
 
                 # Calculate the discriminant
                 discriminant = B ** 2 - 4 * A * C

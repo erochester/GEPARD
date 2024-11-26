@@ -166,7 +166,7 @@ class Hospital:
 
     def plot_scenario(self):
         """
-        Method used to vizualize the scenario, i.e., space, user arrival/departure points and
+        Method used to visualize the scenario, i.e., space, user arrival/departure points and
         trajectory across the space.
         """
         fig, ax = plt.subplots()

@@ -1,14 +1,14 @@
 import argparse
 import logging
-from logging_module import setup_logging
-import random
-from xml.etree.ElementTree import parse
 import os
+import random
+import time
 
 import numpy as np
 
 from driver import Driver
 from iot_device import IoTDevice
+from logging_module import setup_logging
 from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
 from process_results import ResultProcessor
@@ -113,31 +113,35 @@ if __name__ == "__main__":
     else:
         distribution_type = args.distribution
 
-    # default seed for reproducibility
-    random.seed(123)
-    np.random.seed(123)
+    # default seeds for reproducibility
+    # random.seed(123)
+    # np.random.seed(123)
 
     # Load YAML file
     config = load_config()
 
     if args.tournament:
+        # Tournament run case
         # Extract values directly from the YAML configuration
         runs = config['Tournament']['runs']
         networks = config['Tournament']['networks']
         scenarios = config['Tournament']['scenarios']
         protocols = config['Tournament']['protocols']
+        seed = int(time.time())
+        logging.debug("Initial Seed: ", seed)
         # Run the code for each combination of protocol, network, and scenario
         for protocol in protocols:
             for network in networks:
                 for scenario in scenarios:
                     for i in range(runs):
                         # use run number for seed
-                        random.seed(i + 1)
+                        random.seed(seed + 1)
                         # Run your code here with the current combination of protocol, network, and scenario
                         logging.info(f"Run {i + 1} of {runs} for protocol {protocol}, network {network}, "
-                              f"and scenario {scenario}")
+                                     f"and scenario {scenario}")
                         main(scenario, network, protocol, file_path, distribution_type)
     else:
+        # Single run case
         if not args.protocol or not args.network or not args.scenario:
             parser.error("Please provide -a, -s and -n arguments to setup protocol, scenario and network type.")
             exit(1)

@@ -29,17 +29,20 @@ def main(test_or_config):
                                                                                                       3)
         print(f"Charge for connection interval: {charge_interval}")
 
-        # now get the charge for a master establishing a connection. We are only interested in the additional energy that
-        # is not accounted for in the energy model for device discovery as described in the paper, and not the whole model.
+        # now get the charge for a master establishing a connection.
+        # We are only interested in the additional energy that
+        # is not accounted for in the energy model for device discovery as described in the paper,
+        # and not the whole model.
         # Therefore, we use \ref SC_EVENT_TYPE_CON_REQ_OFFSET
-        cro_charge = bleemod.scanner.ble_e_model_sc_get_charge_scan_event(0.025, 6, 0, 37, 44, 0,
-                                                                          0.125)  # Using the values directly, adjust if needed
+        cro_charge = (bleemod.scanner.ble_e_model_sc_get_charge_scan_event
+                      (0.025, 6, 0, 37, 44, 0,
+                       0.125))  # Using the values directly, # adjust if needed
         print(f"Connection Request offset charge: {cro_charge}")
 
         # now we calculate the energy consumption of a scan event with active scanning that receives and
         # replies to an advertising event
-        cro_act_scan = bleemod.scanner.ble_e_model_sc_get_charge_scan_event(0.025, 2, 0, 28, 22, 34,
-                                                                            0.125)  # Using the values directly, adjust if needed
+        cro_act_scan = (bleemod.scanner.ble_e_model_sc_get_charge_scan_event
+                        (0.025, 2, 0, 28, 22, 34, 0.125))  # Using the values directly, adjust if needed
         print(f"Active Scanning Event: {cro_act_scan}")
 
         # Calculate the latency and energy consumption of device discovery for Ta = 2.55s, Ts = 2.56s and ds = 64ms.
@@ -60,7 +63,8 @@ def main(test_or_config):
     else:
         # Use this portion of the code to test the configuration of advertising and scanning parameters and its effects
         # on the output of the energy model.
-        # We use https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
+        # We use
+        # https://www.researchgate.net/publication/335808941_Connection-less_BLE_Performance_Evaluation_on_Smartphones
         # as a reference for realistic values
         total_user_power_consumption = 0
         total_owner_power_consumption = 0

@@ -4,12 +4,23 @@ import pandas as pd
 import re
 
 # Function to read the CSV file
+
+
 def read_csv():
+    """
+    Read csv file.
+    :return: pandas dataframe.
+    """
     file_path = input("Enter the path to the CSV file: ").strip()
     return pd.read_csv(file_path)
 
-# Function to get user input from command line
+
 def get_user_input(base_metrics):
+    """
+    Function to get user input from command line.
+    :param base_metrics: Min, Max, Avg, Std, etc.
+    :return: metric_base, group_by, plot_by
+    """
     print("Available base metrics:", ", ".join(base_metrics))
     metric_base = input("Enter the base metric you want to plot: ").strip()
 
@@ -23,13 +34,25 @@ def get_user_input(base_metrics):
 
     return metric_base, group_by, plot_by
 
-# Function to plot the data
+
 def plot_data(df, metric_base, group_by, plot_by):
+    """
+    Function to plot the data.
+    :param df: dataframe containing metrics and group_by.
+    :param metric_base: Base metric.
+    :param group_by: Group by which metric.
+    :param plot_by: Plot by which metric.
+    """
     metric_avg = f"Avg {metric_base}"
     metric_std = f"Std {metric_base}"
 
     # Function to format labels
     def format_label(label):
+        """
+        Function to format the Network label.
+        :param label: Network label to format.
+        :return: Formatted label.
+        """
         if label.lower() == 'ble':
             return 'BLE'
         elif label.lower() == 'zigbee':
@@ -92,8 +115,8 @@ def plot_data(df, metric_base, group_by, plot_by):
         ax.tick_params(axis='y', which='major', labelsize=16)
         ax.set_xticks(ind)
         ax.set_xticklabels([format_label(cat) for cat in category1], fontsize=18)
-        ax.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-                   mode="expand", borderaxespad=0, ncol=3, fontsize=18)
+        ax.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left", mode="expand",
+                  borderaxespad=0, ncol=3, fontsize=18)
 
         # Add gridlines
         ax.grid(True, axis='y', linestyle='--', alpha=0.7)
@@ -103,6 +126,11 @@ def plot_data(df, metric_base, group_by, plot_by):
         fig.canvas.manager.set_window_title(title)
 
         def autolabel(rects, xpos='center'):
+            """
+            Auto labelling function for box plot.
+            :param rects: rectangles/boxes.
+            :param xpos: Position ("center" default)
+            """
             ha = {'center': 'center', 'right': 'left', 'left': 'right'}
             offset = {'center': 0, 'right': 1, 'left': -1}
 
@@ -121,6 +149,7 @@ def plot_data(df, metric_base, group_by, plot_by):
 
     # Show all figures at once
     plt.show()
+
 
 # Main script
 df = read_csv()
