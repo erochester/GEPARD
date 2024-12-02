@@ -7,6 +7,8 @@ from matplotlib.patches import Circle
 
 from user import User
 
+from util import get_config
+
 
 class ExampleScenario:
     """
@@ -14,16 +16,23 @@ class ExampleScenario:
     Used for first time testing of the code with small number of users in the IoT environment.
     Can be run with any networking technology and negotiatio protocol implemented.
     """
-    def __init__(self, list_of_users, iot_device):
+    def __init__(self, list_of_users, iot_device, network):
         """
         Initializes all the users, the IoT device and the space size for the scenario.
         :param list_of_users: List of all User objects.
         :param iot_device: IoT device object.
         """
+        self.config = get_config()['Example']  # Load example-specific config
         self.list_of_users = list_of_users
         self.iot_device = iot_device
-        # The example scenario radius is assumed to be 50 meters
-        self.radius = 50
+        self.last_arrival = self.config['last_arrival']
+        # The example scenario radius is assumed to be 50 meters by default
+        self.radius = self.config['radius']
+        self.lmbd = self.config['lambda']  # User arrival rate per minute
+        self.multiplier = self.config['multiplier']
+        self.speed_min = self.config['speed_min']
+        self.speed_max = self.config['speed_max']
+        self.network = network
 
     def generate_scenario(self, dist):
         """
@@ -31,13 +40,6 @@ class ExampleScenario:
         Similarly, generates the IoT device object.
         :param dist: Distribution used to generate user inter-arrival events.
         """
-        # Small number of users simply for testing
-        last_arrival = 30
-
-        # Arrival lambda is assumed from https://pnrjournal.com/index.php/home/article/view/500
-        # Same as hospital
-        lmbd = 0.1584
-
         # Initialize arrival time
         arrival_time = 0
 
@@ -45,9 +47,9 @@ class ExampleScenario:
         user_id = 0
 
         # New arrivals come until midnight as we simulate 1 full day
-        while arrival_time <= last_arrival:
+        while arrival_time <= self.last_arrival:
             # Generate the speed
-            speed = np.random.uniform(0.27, 1.5)
+            speed = self.multiplier * random.uniform(self.speed_min, self.speed_max)
 
             # Generate user arrival angle and calculate coordinates on the sensing disk
             arrival_angle = np.random.rand() * np.pi * 2
@@ -59,24 +61,74 @@ class ExampleScenario:
             x_d = np.cos(departure_angle) * self.radius
             y_d = np.sin(departure_angle) * self.radius
 
+            within_comm_range_time = 0.0
+
+            if self.radius > self.network.network_impl.comm_distance:
+
+                # Coefficients for the quadratic equation
+                A = (x_d - x_a) ** 2 + (y_d - y_a) ** 2
+                B = 2 * (x_a * (x_d - x_a) + y_a * (y_d - y_a))
+                C = x_a ** 2 + y_a ** 2 - self.network.network_impl.comm_distance ** 2
+
+                # Calculate the discriminant
+                discriminant = B ** 2 - 4 * A * C
+
+                # Initialize the closest point and minimum distance
+                closest_point = None
+                min_distance = float('inf')
+                within_comm_range_time = 0.0
+
+                # Check if the line intersects the inner circle
+                if discriminant >= 0:
+                    # Calculate the two solutions for t
+                    t1 = (-B + np.sqrt(discriminant)) / (2 * A)
+                    t2 = (-B - np.sqrt(discriminant)) / (2 * A)
+
+                    intersection_points = []
+
+                    # Check if t1 is within the range [0, 1]
+                    if 0 <= t1 <= 1:
+                        x1 = x_a + t1 * (x_d - x_a)
+                        y1 = y_a + t1 * (y_d - y_a)
+                        intersection_points.append((x1, y1))
+
+                    # Check if t2 is within the range [0, 1]
+                    if 0 <= t2 <= 1:
+                        x2 = x_a + t2 * (x_d - x_a)
+                        y2 = y_a + t2 * (y_d - y_a)
+                        intersection_points.append((x2, y2))
+
+                    # Determine the closest intersection point to the arrival point
+                    for point in intersection_points:
+                        distance = np.sqrt((point[0] - x_a) ** 2 + (point[1] - y_a) ** 2)
+                        if distance < min_distance:
+                            min_distance = distance
+                            closest_point = point
+
+                    if intersection_points:
+                        distance = np.sqrt((closest_point[0] - x_a) ** 2 + (closest_point[1] - y_a) ** 2)
+                        within_comm_range_time = distance / speed
+
             # Privacy fundamentalists (1), privacy pragmatists (2), and privacy unconcerned (3)
-            privacy_coeff = random.choice([1] * 25 + [2] * 55 + [3] * 20)
+            privacy_coeff = random.choice([1] * self.config['privacy_fundamentalists_proportion']
+                                          + [2] * self.config['privacy_pragmatists_proportion']
+                                          + [3] * self.config['privacy_unconcerned_proportion'])
             if privacy_coeff == 1:
-                privacy_coeff = random.uniform(0.001, 0.03)
+                privacy_coeff = random.uniform(*self.config['privacy_fundamentalists_coeff_range'])
                 privacy_label = 1
             elif privacy_coeff == 2:
                 privacy_label = 2
-                privacy_coeff = random.uniform(0.11, 0.15)
+                privacy_coeff = random.uniform(*self.config['privacy_pragmatists_coeff_range'])
             else:
                 privacy_label = 3
-                privacy_coeff = random.uniform(0.031, 0.10)
+                privacy_coeff = random.uniform(*self.config['privacy_unconcerned_coeff_range'])
 
             # Define weights for utility calculation
             # same as hospital scenario
             # for example scenario we assume that service provided is more important than energy consumed for user
             # and that data collected is more important than energy consumed for IoT device
             # first is data/service and second is energy
-            weights = [0.9, 0.1]
+            weights = [self.config['time_weight'], self.config['energy_weight']]
 
             self.iot_device.update_weights(weights)
 
@@ -85,10 +137,14 @@ class ExampleScenario:
             self.list_of_users.append(user)
             user_id += 1
 
-            inter_arrival_time = dist.generate_random_samples(lmbd)
+            inter_arrival_time = dist.generate_random_samples(self.lmbd)
 
             # Add the inter-arrival time to the arrival time
             arrival_time = arrival_time + inter_arrival_time
+
+            if within_comm_range_time != 0.0:
+                user.update_within_comm_range(arrival_time + within_comm_range_time)
+
             user.update_arrival_time(arrival_time)
 
             # Calculate distance between user arrival and departure points

@@ -14,7 +14,6 @@ class Scenario:
         self.list_of_users = list_of_users
         self.iot_device = iot_device
         if scenario == "example_scenario":
-            # TODO: fix
             self.scenario = ExampleScenario(list_of_users, iot_device, network)
         elif scenario == "shopping_mall":
             self.scenario = ShoppingMall(list_of_users, iot_device, network)

@@ -1,21 +1,21 @@
 ############################### Tournament Parameters ###############################
 
 Tournament:
-  runs: 25
+  runs: 1
   networks:
     - ble
     - zigbee
-#    - lora
+    - lora
   scenarios:
-    - university  # Commented out scenario
+    - university
     - hospital
-    - shopping_mall  # Commented out scenario
+    - shopping_mall
     # - example_scenario
   protocols:
-#    - alanezi
+    - alanezi
     - cunche
-#    - concession
-#    - padome
+    - concession
+    - padome
 
 ############################### Scenario Parameters ###############################
 University:
@@ -83,6 +83,26 @@ ShoppingMall:
 
   time_weight: 0.2                 # Weight for time in utility calculation
   energy_weight: 0.8                # Weight for energy in utility calculation
+
+Example:
+  radius: 50  # space is assumed circular (specific to example)
+  last_arrival: 30
+  lambda: 2.55                      # user arrival rate in users per minute
+
+  multiplier: 1.0  # Speed increase/decrease multiplier for environment (e.g., slower pace)
+  speed_min: 16.2                   # Minimum base speed (m/min)
+  speed_max: 90.0                   # Maximum base speed (m/min)
+
+  privacy_fundamentalists_proportion: 25  # Represented by privacy label 1
+  privacy_pragmatists_proportion: 55      # Represented by privacy label 2
+  privacy_unconcerned_proportion: 20      # Represented by privacy label 3
+
+  privacy_fundamentalists_coeff_range: [ 0.001, 0.03 ]
+  privacy_pragmatists_coeff_range: [ 0.11, 0.15 ]
+  privacy_unconcerned_coeff_range: [ 0.031, 0.10 ]
+
+  time_weight: 0.9                 # Weight for time in utility calculation
+  energy_weight: 0.1                # Weight for energy in utility calculation
 
 ############################### Network Parameters ###############################
 

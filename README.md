@@ -6,8 +6,7 @@
 
 To run this project, you will need:
 
-Python 3.9 or higher
-The following Python packages:
+Python 3.9 or higher and the following Python packages:
  * matplotlib
  * numpy
  * pandas
@@ -41,9 +40,9 @@ _Currently implemented values are_:
 |alanezi|ble|hospital|poisson|
 |cunche|zigbee|shopping_mall|-|
 |concession|lora|university|-|
-|-|-|example_scenario|-|
+|padome|-|example_scenario|-|
 
-2) Tournament-Style Run (make sure to review "tournament_setup.xml" for tournament settings and make appropriate changes).
+2) Tournament-Style Run (make sure to review "config.yaml" for tournament settings and make appropriate changes).
 
 A tournament-style run is for evaluating different PA designs, involving various network technologies and negotiation protocols across different scenarios.
 ```
