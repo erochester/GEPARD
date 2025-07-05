@@ -153,10 +153,11 @@ def write_results(filename, rows):
         # Write the column headers only if the file is newly created
         if mode == "w":
             fields = ["Protocol", "Network", "Scenario", "Avg User Power Consumption (W)",
-                      "Total Owner Power Consumption (W)", "Total User Time Spent (s)", "Total Owner Time Spent (s)",
+                      "Total Owner Power Consumption (W)", "Avg User Time Spent (s)", "Total Owner Time Spent (s)",
                       "Consent collected from", "Total user number",
-                      "Consent Percentage (%)", "Total runtime (min)", "Raw Average User Utility",
-                      "Raw Total Owner Utility",
+                      "Consent Percentage (%)", "Total in-range user number" , "In-range Consent Percentage (%)",
+                      "Total runtime (min)",
+                      "Raw Average User Utility", "Raw Total Owner Utility",
                       "Normalized Average User Utility", "Normalized Total Owner Utility"]
             csvwriter.writerow(fields)
 
@@ -174,11 +175,13 @@ def write_results(filename, rows):
                     row[7],  # Consent collected from
                     row[8],  # Total user number
                     f"{row[9]:.{determine_decimals(row[9])}f}",  # Consent Percentage (%)
-                    f"{row[10]:.{determine_decimals(row[10])}f}",  # Total runtime (min)
-                    f"{row[11]:.{determine_decimals(row[11])}f}",  # Raw Average User Utility
-                    f"{row[12]:.{determine_decimals(row[12])}f}",  # Raw Total Owner Utility
-                    f"{row[13]:.{determine_decimals(row[13])}f}",  # Normalized Average User Utility
-                    f"{row[14]:.{determine_decimals(row[14])}f}"  # Normalized Total Owner Utility
+                    f"{row[10]:.{determine_decimals(row[10])}f}",  # Total in-range user num
+                    f"{row[11]:.{determine_decimals(row[11])}f}",  # In-range Consent Percentage (%)
+                    f"{row[12]:.{determine_decimals(row[12])}f}",  # Total runtime (min)
+                    f"{row[13]:.{determine_decimals(row[13])}f}",  # Raw Average User Utility
+                    f"{row[14]:.{determine_decimals(row[14])}f}",  # Raw Total Owner Utility
+                    f"{row[15]:.{determine_decimals(row[15])}f}",  # Normalized Average User Utility
+                    f"{row[16]:.{determine_decimals(row[16])}f}"  # Normalized Total Owner Utility
                 ]
                 formatted_rows.append(formatted_row)
 
@@ -246,14 +249,14 @@ def calc_norm_utility(data, is_iot_device):
     """
     # Use this to scale the utilities respective to each other.
     # We keep the utilities as-is per algorithm and standardize separately.
-    # Find the maximum utility
-    max_utility = max([u.utility for u in data])
-
-    # Find the minimum utility
-    min_utility = min([u.utility for u in data])
 
     # Scaling utilities
     if not is_iot_device:
+        # Find the maximum utility
+        max_utility = max([u.utility for u in data])
+
+        # Find the minimum utility
+        min_utility = min([u.utility for u in data])
         for u in data:
             # check that utilities are non-zero
             if max_utility != 0:
@@ -261,6 +264,12 @@ def calc_norm_utility(data, is_iot_device):
 
     # check that utilities are non-zero
     else:
+        # Find the maximum utility
+        max_utility = max([u.utility for u in data[:-1]])
+
+        # Find the minimum utility
+        min_utility = min([u.utility for u in data[:-1]])
+
         if max_utility != 0:
             # Scale iot device utility
             data[-1].norm_utility = ((data[-1].utility - min_utility) / (max_utility - min_utility) * 100) / len(
@@ -293,6 +302,7 @@ def integral_function(z, a, b, c_w):
     In our case the elicitation cost.
     :return: The equation to solve for: integral_value - c(w) = 0
     """
+
     # Define the integrand
     def integrand(x):
         """
@@ -328,4 +338,52 @@ def solve_for_z(a, b, c_w):
     # Solve for z using numerical method
     z_solution = fsolve(integral_function, z_initial_guess, args=(a, b, c_w))[0]
 
+    # Alternatively use
+    # from scipy.optimize import brentq
+    #
+    # z_solution = brentq(integral_function, a - 0.1, b, args=(a, b, c_w))
+
     return z_solution
+
+
+def point_to_segment_distance(p, a, b):
+    """
+    Computes the shortest distance from point p to the segment ab.
+    :param p: The point (x, y), here (0, 0)
+    :param a: Start of the segment (x1, y1)
+    :param b: End of the segment (x2, y2)
+    :return: Shortest distance from point p to the segment ab
+    """
+    # Convert to numpy arrays for vector math
+    p = np.array(p)
+    a = np.array(a)
+    b = np.array(b)
+    ab = b - a
+    ap = p - a
+
+    # Project point p onto line ab, compute parameter t of projection
+    t = np.dot(ap, ab) / np.dot(ab, ab)
+
+    # Clamp t to [0, 1] to restrict to segment
+    t = max(0, min(1, t))
+
+    # Compute the closest point on the segment
+    closest = a + t * ab
+
+    # Return distance from p to that point
+    return np.linalg.norm(p - closest)
+
+
+def get_users_in_range(users, comm_range):
+    """
+    Used to get users that at least at some point crossed the communications range of the IoT device
+    :param users: list of users
+    :param comm_range: communications range of the IoT device
+    :return: list of users that at least at some point crossed the communications range of the IoT device
+    """
+    users_in_range = []
+    for user in users:
+        distance = point_to_segment_distance((0, 0), user.arr_loc, user.dep_loc)
+        if distance <= comm_range:
+            users_in_range.append(user)
+    return users_in_range

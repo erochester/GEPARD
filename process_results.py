@@ -42,9 +42,10 @@ class ResultProcessor:
                 scenario = row.get("Scenario")
                 user_power = float(row.get("Avg User Power Consumption (W)", 0.0))
                 owner_power = float(row.get("Total Owner Power Consumption (W)", 0.0))
-                user_time = float(row.get("Total User Time Spent (s)", 0.0))
+                user_time = float(row.get("Avg User Time Spent (s)", 0.0))
                 owner_time = float(row.get("Total Owner Time Spent (s)", 0.0))
                 consent = float(row.get("Consent Percentage (%)", 0.0))
+                consent_in_range = float(row.get("In-range Consent Percentage (%)", 0.0))
                 runtime = float(row.get("Total runtime (min)", 0.0))
                 user_utility = float(row.get("Raw Average User Utility", 0.0))
                 owner_utility = float(row.get("Raw Total Owner Utility", 0.0))
@@ -70,6 +71,7 @@ class ResultProcessor:
                     "user_time": user_time,
                     "owner_time": owner_time,
                     "consent": consent,
+                    "consent_in_range": consent_in_range,
                     "runtime": runtime,
                     "user utility": user_utility,
                     "owner utility": owner_utility,
@@ -85,8 +87,9 @@ class ResultProcessor:
                     'Avg User Power (W)', 'Min User Power (W)', 'Max User Power (W)', 'Std User Power (W)',
                     'Avg Owner Power (W)', 'Min Owner Power (W)', 'Max Owner Power (W)', 'Std Owner Power (W)',
                     'Avg User Time (s)', 'Min User Time (s)', 'Max User Time (s)', 'Std User Time (s)',
-                    'Avg Owner Time (s)', 'Min Owner Time (s)', 'Max Owner Time (s)', 'Std Owner Time (s)',
+                    'Avg Total Owner Time (s)', 'Min Total Owner Time (s)', 'Max Total Owner Time (s)', 'Std Total Owner Time (s)',
                     'Avg Consent (%)', 'Min Consent (%)', 'Max Consent (%)', 'Std Consent (%)',
+                    'Avg Consent In-Range (%)', 'Min Consent In-Range (%)', 'Max Consent In-Range (%)', 'Std Consent In-Range (%)',
                     'Avg Runtime (min)', 'Min Runtime (min)', 'Max Runtime (min)', 'Std Runtime (min)',
                     'Avg User Utility', 'Min User Utility', 'Max User Utility', 'Std User Utility',
                     'Avg Owner Utility', 'Min Owner Utility', 'Max Owner Utility', 'Std Owner Utility',
@@ -106,6 +109,11 @@ class ResultProcessor:
             best_protocol_consent = ""
             best_network_consent = ""
             best_scenario_consent = ""
+
+            max_consent_in_range_test = 0
+            best_protocol_consent_in_range = ""
+            best_network_consent_in_range = ""
+            best_scenario_consent_in_range = ""
 
             min_time = float("inf")
             best_protocol_time = ""
@@ -131,6 +139,7 @@ class ResultProcessor:
                         user_time = [data["user_time"] for data in scenario_data]
                         owner_time = [data["owner_time"] for data in scenario_data]
                         consents = [data["consent"] for data in scenario_data]
+                        consents_in_range = [data["consent_in_range"] for data in scenario_data]
                         runtimes = [data["runtime"] for data in scenario_data]
                         user_utility = [data["user utility"] for data in scenario_data]
                         owner_utility = [data["owner utility"] for data in scenario_data]
@@ -143,6 +152,7 @@ class ResultProcessor:
                         avg_user_time = round(np.mean(user_time), determine_decimals(np.mean(user_time)))
                         avg_owner_time = round(np.mean(owner_time), determine_decimals(np.mean(owner_time)))
                         avg_consent = round(np.mean(consents), 2)
+                        avg_consent_in_range = round(np.mean(consents_in_range), 2)
                         avg_runtime = round(np.mean(runtimes), determine_decimals(np.mean(runtimes)))
                         avg_user_utility = round(np.mean(user_utility), determine_decimals(np.mean(user_utility)))
                         avg_owner_utility = round(np.mean(owner_utility), determine_decimals(np.mean(owner_utility)))
@@ -162,6 +172,12 @@ class ResultProcessor:
                             best_protocol_consent = protocol
                             best_network_consent = network
                             best_scenario_consent = scenario
+
+                        if avg_consent_in_range > max_consent_in_range_test:
+                            max_consent_in_range_test = avg_consent_in_range
+                            best_protocol_consent_in_range = protocol
+                            best_network_consent_in_range = network
+                            best_scenario_consent_in_range = scenario
 
                         if min(avg_user_time, avg_owner_time) < min_time:
                             min_time = min(avg_user_time, avg_owner_time)
@@ -186,6 +202,7 @@ class ResultProcessor:
                         min_user_time = round(np.min(user_time), determine_decimals(np.min(user_time)))
                         min_owner_time = round(np.min(owner_time), determine_decimals(np.min(owner_time)))
                         min_consent = round(np.min(consents), 2)
+                        min_consent_in_range = round(np.min(consents_in_range), 2)
                         min_runtime = round(np.min(runtimes), determine_decimals(np.min(runtimes)))
                         min_user_utility = round(np.min(user_utility), determine_decimals(np.min(user_utility)))
                         min_owner_utility = round(np.min(owner_utility), determine_decimals(np.min(owner_utility)))
@@ -199,6 +216,7 @@ class ResultProcessor:
                         max_user_time = round(np.max(user_time), determine_decimals(np.max(user_time)))
                         max_owner_time = round(np.max(owner_time), determine_decimals(np.max(owner_time)))
                         max_consent = round(np.max(consents), 2)
+                        max_consent_in_range = round(np.max(consents_in_range), 2)
                         max_runtime = round(np.max(runtimes), determine_decimals(np.max(runtimes)))
                         max_user_utility = round(np.max(user_utility), determine_decimals(np.max(user_utility)))
                         max_owner_utility = round(np.max(owner_utility), determine_decimals(np.max(owner_utility)))
@@ -212,6 +230,7 @@ class ResultProcessor:
                         std_user_time = round(np.std(user_time), determine_decimals(np.std(user_time)))
                         std_owner_time = round(np.std(owner_time), determine_decimals(np.std(owner_time)))
                         std_consent = round(np.std(consents), 2)
+                        std_consent_in_range = round(np.std(consents_in_range), 2)
                         std_runtime = round(np.std(runtimes), determine_decimals(np.std(runtimes)))
                         std_user_utility = round(np.std(user_utility), determine_decimals(np.std(user_utility)))
                         std_owner_utility = round(np.std(owner_utility), determine_decimals(np.std(owner_utility)))
@@ -229,7 +248,9 @@ class ResultProcessor:
                              max_owner_time,
                              std_owner_time,
                              avg_consent, min_consent,
-                             max_consent, std_consent, avg_runtime, min_runtime, max_runtime, std_runtime,
+                             max_consent, std_consent, avg_consent_in_range, min_consent_in_range, max_consent_in_range,
+                             std_consent_in_range,
+                             avg_runtime, min_runtime, max_runtime, std_runtime,
                              avg_user_utility, min_user_utility, max_user_utility, std_user_utility,
                              avg_owner_utility, min_owner_utility, max_owner_utility, std_owner_utility,
                              avg_user_stand_utility, min_user_stand_utility, max_user_stand_utility,
@@ -254,6 +275,14 @@ class ResultProcessor:
                 f.write(f"Network: {best_network_consent}\n")
                 f.write(f"Scenario: {best_scenario_consent}\n")
                 f.write(f"User Consent: {max_consent_test:.2f}\n")
+                f.write("\n")
+
+                # Write the combination with the highest user consent in range to the file
+                f.write("The combination with the highest user in range consent is:\n")
+                f.write(f"Protocol: {best_protocol_consent_in_range}\n")
+                f.write(f"Network: {best_network_consent_in_range}\n")
+                f.write(f"Scenario: {best_scenario_consent_in_range}\n")
+                f.write(f"User Consent: {max_consent_in_range_test:.2f}\n")
                 f.write("\n")
 
                 # Write the combination with the least time taken to the file
@@ -296,8 +325,9 @@ class ResultProcessor:
         groups = df.groupby(['Protocol', 'Network', 'Scenario'])
 
         # Define the metrics you want to plot
-        metrics = ['Avg User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Total User Time Spent (s)',
-                   'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'Raw Average User Utility',
+        metrics = ['Avg User Power Consumption (W)', 'Total Owner Power Consumption (W)', 'Avg User Time Spent (s)',
+                   'Total Owner Time Spent (s)', 'Consent Percentage (%)', 'In-range Consent Percentage (%)',
+                   'Raw Average User Utility',
                    'Raw Total Owner Utility', 'Normalized Average User Utility',
                    'Normalized Total Owner Utility']
 

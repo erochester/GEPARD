@@ -13,7 +13,7 @@ from negotiation_protocols.negotiation import NegotiationProtocol
 from networks.network import Network
 from process_results import ResultProcessor
 from scenarios.scenario import Scenario
-from util import result_file_util, write_results, Distribution, calc_norm_utility, determine_decimals, load_config
+from util import result_file_util, write_results, Distribution, calc_norm_utility, determine_decimals, load_config, get_users_in_range
 
 
 def main(scenario_name, network_type, protocol, filename, distribution_type):
@@ -55,7 +55,7 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
     driver = Driver(scenario, negotiation_protocol)
 
     total_consented, avg_user_power_consumption, total_owner_power_consumption, \
-        total_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
+        avg_user_time_spent, total_owner_time_spent, end_time, list_of_users, iot_device \
         = driver.run()  # drives the simulation environment
 
     # calculate normalized utilities
@@ -67,10 +67,14 @@ def main(scenario_name, network_type, protocol, filename, distribution_type):
     rows = [[protocol, network_type, scenario_name,
              round(avg_user_power_consumption, determine_decimals(avg_user_power_consumption)),
              round(total_owner_power_consumption, determine_decimals(total_owner_power_consumption)),
-             round(total_user_time_spent, determine_decimals(total_user_time_spent)),
+             round(avg_user_time_spent, determine_decimals(avg_user_time_spent)),
              round(total_owner_time_spent, determine_decimals(total_owner_time_spent)),
-             total_consented, len(list_of_users),
+             total_consented,
+             len(list_of_users),
              round((total_consented / len(list_of_users)) * 100, 2),
+             len(get_users_in_range(list_of_users, network.network_impl.comm_distance)),
+             round((total_consented / len(get_users_in_range(list_of_users, network.network_impl.comm_distance))) * 100,
+                   2),
              round(end_time, determine_decimals(end_time)),
              round(np.mean([u.utility for u in list_of_users]), 2),
              round(iot_device.utility, 2),

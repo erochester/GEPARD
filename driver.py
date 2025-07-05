@@ -107,8 +107,9 @@ class Driver:
                                       len(self.scenario.list_of_users))
 
         total_owner_power_consumption = self.scenario.iot_device.power_consumed
-        total_user_time_spent = sum([u.time_spent for u in self.scenario.list_of_users])
+        avg_user_time_spent = (sum([u.time_spent for u in self.scenario.list_of_users]) /
+                               len(self.scenario.list_of_users))
         total_owner_time_spent = self.scenario.iot_device.time_spent
 
         return total_consented, avg_user_power_consumption, total_owner_power_consumption, \
-            total_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device
+            avg_user_time_spent, total_owner_time_spent, curr_t, self.scenario.list_of_users, self.scenario.iot_device
